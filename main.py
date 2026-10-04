@@ -19,7 +19,13 @@ def main():
     parser.add_argument("--raw-reference", type=str, default="data/raw/laserjet_1200dpi_sample.jpg", help="Path to reference raw scan for DPI derivation")
     parser.add_argument("--output-dir", type=str, default="outputs", help="Directory where artifacts are exported")
     parser.add_argument("--max-crops", type=int, default=1000, help="Maximum individual grain crops to save")
+    parser.add_argument("--clean-output", action="store_true", help="Clean output directory before writing new run results")
+    parser.add_argument("--no-save", action="store_true", help="Run analysis in memory and print results without saving disk artifacts")
     args = parser.parse_args()
+
+    import shutil
+    if args.clean_output and os.path.exists(args.output_dir):
+        shutil.rmtree(args.output_dir)
 
     cfg = PipelineConfig()
     cfg.export.output_dir = args.output_dir
@@ -33,7 +39,7 @@ def main():
     results = pipeline.run(
         image_path=args.image,
         raw_reference_path=args.raw_reference if os.path.exists(args.raw_reference) else None,
-        generate_outputs=True
+        generate_outputs=not args.no_save
     )
     s = results["summary"]
     print(f"Pipeline Complete | Grains: {s['total_grains_detected']} | Split: {s['separation']['clusters_successfully_split']}/{s['separation']['clusters_detected']}")
