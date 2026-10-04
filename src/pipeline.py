@@ -80,18 +80,26 @@ class RiceQualityPipeline:
     ) -> None:
         cfg = self.config.export
 
+        # visualizer.save_visualization: persist rendered image matrix to disk
         save_visualization(original_bgr, os.path.join(cfg.visualizations_dir, "original.jpg"))
 
+        # visualizer.create_segmentation_overlay: generate semi-transparent green mask overlay on original image
         seg_overlay = create_segmentation_overlay(original_bgr, clean_mask)
+        # visualizer.save_visualization: persist rendered image matrix to disk
         save_visualization(seg_overlay, os.path.join(cfg.visualizations_dir, "segmentation.jpg"))
 
+        # visualizer.create_instances_visualization: render pseudo-color instance segmentation map with grain IDs
         inst_vis = create_instances_visualization(original_bgr, instance_mask, classified_records)
+        # visualizer.save_visualization: persist rendered image matrix to disk
         save_visualization(inst_vis, os.path.join(cfg.visualizations_dir, "instances.jpg"))
 
+        # visualizer.create_measurements_visualization: overlay oriented bounding boxes and measurement tags on grains
         meas_vis = create_measurements_visualization(original_bgr, classified_records, instance_mask)
+        # visualizer.save_visualization: persist rendered image matrix to disk
         save_visualization(meas_vis, os.path.join(cfg.visualizations_dir, "measurements.jpg"))
 
         if cfg.save_crops or cfg.save_masks:
+            # exporter.export_crops_and_masks: export individual grain bounding box image crops and binary masks
             export_crops_and_masks(
                 original_bgr=original_bgr,
                 instance_mask=instance_mask,
@@ -101,8 +109,11 @@ class RiceQualityPipeline:
                 max_count=cfg.max_crops_to_save
             )
 
+        # exporter.export_measurements_csv: save all measured grain features to a structured CSV file
         export_measurements_csv(df_classified, os.path.join(cfg.output_dir, "grain_measurements.csv"))
+        # exporter.export_summary_json: save aggregated run metrics and counts to a JSON summary file
         export_summary_json(summary, os.path.join(cfg.output_dir, "summary.json"))
+        # report_generator.generate_experiment_report: compile summary and statistics into markdown experiment report
         generate_experiment_report(summary, df_classified, os.path.join(cfg.reports_dir, "M0_BASELINE_REPORT.md"))
 
     def run(
@@ -123,12 +134,14 @@ class RiceQualityPipeline:
         img_h, img_w = original_bgr.shape[:2]
         original_rgb = cv2.cvtColor(original_bgr, cv2.COLOR_BGR2RGB)
 
+        # calibration.resolve_calibration: resolve effective DPI and mm-per-pixel scaling from metadata/reference
         calib = resolve_calibration(
             image_path,
             raw_reference_path=raw_reference_path,
             assumed_dpi=self.config.calibration.assumed_dpi
         )
 
+        # border_clearing.clear_scanner_bezel: detect and zero out saturated scanner glass bezel margins
         cleaned_bgr, cleared_margins = clear_scanner_bezel(
             original_bgr,
             saturation_thresh=self.config.preprocessing.bezel_intensity_thresh
@@ -136,15 +149,19 @@ class RiceQualityPipeline:
 
         spatial_params = self._scale_spatial_parameters(img_h, img_w)
 
+        # denoise.preprocess_image: convert image to grayscale and apply Gaussian filter smoothing
         _, smoothed = preprocess_image(
             cleaned_bgr,
             gaussian_kernel=spatial_params["ksize"],
             gaussian_sigma=self.config.preprocessing.gaussian_sigma
         )
 
+        # binarize.compare_segmentation_methods: benchmark Otsu against adaptive, triangle, Yen, and Li algorithms
         seg_comparison = compare_segmentation_methods(smoothed)
+        # binarize.segment_otsu: binarize smoothed grayscale image using Otsu global optimal thresholding
         binary_raw, otsu_val = segment_otsu(smoothed)
 
+        # morphology.cleanup_mask: perform binary hole-filling, morphological opening, and small-noise removal
         clean_mask = cleanup_mask(
             binary_raw,
             kernel_size=self.config.segmentation.morph_kernel_size,
@@ -152,6 +169,7 @@ class RiceQualityPipeline:
             fill_holes=self.config.segmentation.fill_holes
         )
 
+        # separation.separate_touching_grains: separate clustered and touching grains via distance-transform watershed
         instance_mask, grain_diagnostics, separation_stats = separate_touching_grains(
             clean_mask,
             min_peak_distance_px=spatial_params["min_peak_dist"],
@@ -161,6 +179,7 @@ class RiceQualityPipeline:
             min_valid_area_px=spatial_params["min_valid_area"]
         )
 
+        # measurement.measure_all_grains: compute morphology dimensions (length, width, area) and RGB/HSV color metrics
         df_measurements, _ = measure_all_grains(
             instance_mask=instance_mask,
             image_rgb=original_rgb,
@@ -170,6 +189,7 @@ class RiceQualityPipeline:
             min_area_px=spatial_params["min_valid_area"]
         )
 
+        # classification.rule_based.classify_grains_rule_based: assign quality classes (WHOLE/BROKEN/CLUSTER) using Codex/USDA rules
         df_classified = classify_grains_rule_based(
             df_measurements,
             broken_length_ratio_thresh=self.config.classification.broken_length_ratio_thresh,

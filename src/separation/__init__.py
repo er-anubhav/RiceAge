@@ -238,6 +238,7 @@ def _segment_cluster_watershed(roi_mask: np.ndarray, min_peak_distance_px: int, 
     return skimage_watershed(-dist_local, ndi.maximum_filter(markers, size=3), mask=roi_mask.astype(bool))
 
 
+# Separate touching/clustered grains using distance-transform watershed while preserving isolated grains.
 def separate_touching_grains(
     binary_mask: np.ndarray,
     min_peak_distance_px: int = 8,
