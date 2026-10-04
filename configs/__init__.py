@@ -1,4 +1,4 @@
-"""Pipeline configurations package."""
+# Pipeline configurations package.
 from .default_config import (
     PipelineConfig,
     PreprocessingConfig,

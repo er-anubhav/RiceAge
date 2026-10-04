@@ -1,4 +1,4 @@
-"""Visualization module for segmentation, instances, measurements, and separation diagnostics."""
+# Visualization module for segmentation, instances, measurements, and separation diagnostics.
 
 import os
 from typing import Tuple, List, Dict, Any, Optional
@@ -7,7 +7,7 @@ import cv2
 
 
 def generate_instance_colormap(num_classes: int, seed: int = 42) -> np.ndarray:
-    """Generate high-contrast random colors for instance visualization."""
+    # Generate high-contrast random colors for instance visualization.
     np.random.seed(seed)
     # Bright saturated colors
     colors = np.random.randint(60, 255, size=(num_classes + 1, 3), dtype=np.uint8)
@@ -20,7 +20,7 @@ def create_segmentation_overlay(
     binary_mask: np.ndarray,
     alpha: float = 0.35
 ) -> np.ndarray:
-    """Create a semi-transparent color overlay of the binary segmentation on original image."""
+    # Create a semi-transparent color overlay of the binary segmentation on original image.
     overlay = original_bgr.copy()
     # Color mask pixels with bright green
     overlay[binary_mask > 0] = [0, 220, 0]
@@ -38,7 +38,7 @@ def create_instances_visualization(
     measurements: List[Dict[str, Any]],
     alpha: float = 0.5
 ) -> np.ndarray:
-    """Generate color-coded instance segmentation map with labeled grain IDs."""
+    # Generate color-coded instance segmentation map with labeled grain IDs.
     max_id = int(instance_mask.max())
     if max_id == 0:
         return original_bgr.copy()
@@ -75,7 +75,7 @@ def create_measurements_visualization(
     measurements: List[Dict[str, Any]],
     instance_mask: np.ndarray
 ) -> np.ndarray:
-    """Annotate grains with rotated minimum-area bounding boxes, major axes, and metrics."""
+    # Annotate grains with rotated minimum-area bounding boxes, major axes, and metrics.
     vis = original_bgr.copy()
 
     for row in measurements:
@@ -144,6 +144,6 @@ def create_measurements_visualization(
 
 
 def save_visualization(image: np.ndarray, output_path: str) -> None:
-    """Save visualization image ensuring parent directory exists."""
+    # Save visualization image ensuring parent directory exists.
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     cv2.imwrite(output_path, image, [cv2.IMWRITE_JPEG_QUALITY, 92])

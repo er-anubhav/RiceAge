@@ -1,4 +1,4 @@
-"""Scanner bezel detection, margin clearing, and boundary grain identification."""
+# Scanner bezel detection, margin clearing, and boundary grain identification.
 
 from typing import Tuple
 import numpy as np
@@ -20,7 +20,7 @@ def detect_scanner_margins(
     saturation_thresh: int = 240,
     max_search_ratio: float = 0.05
 ) -> Tuple[int, int, int, int]:
-    """Detect saturated scanner glass bezel lines along image borders."""
+    # Detect saturated scanner glass bezel lines along image borders.
     h, w = gray_image.shape[:2]
     max_h = int(h * max_search_ratio)
     max_w = int(w * max_search_ratio)
@@ -41,7 +41,7 @@ def clear_scanner_bezel(
     saturation_thresh: int = 240,
     safety_padding: int = 2
 ) -> Tuple[np.ndarray, Tuple[int, int, int, int]]:
-    """Detect and blank out saturated scanner edges."""
+    # Detect and blank out saturated scanner edges.
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) if image.ndim == 3 else image
     top, bottom, left, right = detect_scanner_margins(gray, saturation_thresh=saturation_thresh)
 
@@ -71,7 +71,7 @@ def is_boundary_grain(
     cleared_margins: Tuple[int, int, int, int] = (0, 0, 0, 0),
     boundary_margin_px: int = 4
 ) -> bool:
-    """Check if a grain touches or lies within boundary_margin_px of active image edges."""
+    # Check if a grain touches or lies within boundary_margin_px of active image edges.
     x, y, bw, bh = bbox
     img_h, img_w = image_shape[:2]
     top_m, bot_m, left_m, right_m = cleared_margins

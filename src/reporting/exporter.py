@@ -1,4 +1,4 @@
-"""Data exporter for grain crops, masks, measurements CSV, and summary JSON."""
+# Data exporter for grain crops, masks, measurements CSV, and summary JSON.
 
 import os
 import json
@@ -17,7 +17,7 @@ def export_crops_and_masks(
     padding_px: int = 4,
     max_count: int = 1000
 ) -> Tuple[int, int]:
-    """Save individual bounding-box crops and binary masks for each detected grain."""
+    # Save individual bounding-box crops and binary masks for each detected grain.
     os.makedirs(crops_dir, exist_ok=True)
     os.makedirs(masks_dir, exist_ok=True)
 
@@ -63,7 +63,7 @@ def export_measurements_csv(
     df: pd.DataFrame,
     output_path: str = "outputs/grain_measurements.csv"
 ) -> str:
-    """Save grain measurements to CSV with proper header formatting."""
+    # Save grain measurements to CSV with proper header formatting.
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     df.to_csv(output_path, index=False)
     return output_path
@@ -73,7 +73,7 @@ def export_summary_json(
     summary_dict: Dict[str, Any],
     output_path: str = "outputs/summary.json"
 ) -> str:
-    """Save pipeline summary statistics to JSON."""
+    # Save pipeline summary statistics to JSON.
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
     def convert_types(obj):

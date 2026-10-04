@@ -1,4 +1,4 @@
-"""Per-grain color, brightness, and specular highlight feature extraction."""
+# Per-grain color, brightness, and specular highlight feature extraction.
 
 from dataclasses import dataclass
 from typing import Optional, Tuple
@@ -8,7 +8,7 @@ import cv2
 
 @dataclass
 class GrainColor:
-    """Photometric and color properties of an individual grain."""
+    # Photometric and color properties of an individual grain.
     grain_id: int
     mean_r: float
     mean_g: float
@@ -25,14 +25,7 @@ def extract_grain_color(
     grain_mask: np.ndarray,
     specular_thresh: int = 240
 ) -> Optional[GrainColor]:
-    """Calculate color, brightness, and surface reflection metrics for a single grain.
-    
-    Args:
-        grain_id: Unique grain identifier.
-        rgb_image: (H, W, 3) RGB or BGR image (assumes RGB ordering).
-        grain_mask: (H, W) uint8 binary mask.
-        specular_thresh: Pixel intensity threshold to detect specular highlights.
-    """
+    # Calculate color, brightness, and surface reflection metrics for a single grain. Args: grain_id: Unique grain identifier. rgb_image: (H, W, 3) RGB or BGR image (assumes RGB ordering). grain_mask: (H, W) uint8 binary mask. specular_thresh: Pixel intensity threshold to detect specular highlights.
     grain_pixels = grain_mask > 0
     if not np.any(grain_pixels):
         return None

@@ -1,4 +1,4 @@
-"""Measurement package for Rice Grain Quality Analyzer."""
+# Measurement package for Rice Grain Quality Analyzer.
 
 from typing import List, Dict, Any, Tuple, Optional
 import numpy as np
@@ -18,12 +18,7 @@ def measure_all_grains(
     calibration: Optional[CalibrationResult] = None,
     min_area_px: int = 40
 ) -> Tuple[pd.DataFrame, List[Dict[str, Any]]]:
-    """Calculate comprehensive morphology and color metrics for all detected grains.
-    
-    Returns:
-        df: pandas DataFrame containing all grain measurements.
-        records: list of dictionaries for each grain.
-    """
+    # Calculate comprehensive morphology and color metrics for all detected grains. Returns: df: pandas DataFrame containing all grain measurements. records: list of dictionaries for each grain.
     img_h, img_w = instance_mask.shape[:2]
     records = []
     

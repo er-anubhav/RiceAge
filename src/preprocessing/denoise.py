@@ -1,4 +1,4 @@
-"""Image denoising and illumination preparation module."""
+# Image denoising and illumination preparation module.
 
 from typing import Tuple
 import numpy as np
@@ -10,17 +10,7 @@ def preprocess_image(
     gaussian_kernel: int = 5,
     gaussian_sigma: float = 0.8
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """Convert image to grayscale and apply mild Gaussian filtering.
-    
-    Args:
-        image: Input RGB/BGR or grayscale image.
-        gaussian_kernel: Kernel size for Gaussian filter (must be odd).
-        gaussian_sigma: Standard deviation for Gaussian kernel.
-        
-    Returns:
-        gray: Original grayscale image (uint8).
-        smoothed: Filtered grayscale image ready for segmentation (uint8).
-    """
+    # Convert image to grayscale and apply mild Gaussian filtering. Args: image: Input RGB/BGR or grayscale image. gaussian_kernel: Kernel size for Gaussian filter (must be odd). gaussian_sigma: Standard deviation for Gaussian kernel. Returns: gray: Original grayscale image (uint8). smoothed: Filtered grayscale image ready for segmentation (uint8).
     if len(image.shape) == 3:
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     else:

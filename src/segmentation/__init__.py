@@ -1,4 +1,4 @@
-"""Segmentation package for Rice Grain Quality Analyzer."""
+# Segmentation package for Rice Grain Quality Analyzer.
 
 from .binarize import (
     segment_otsu,

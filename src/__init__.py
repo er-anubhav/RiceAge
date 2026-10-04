@@ -1,2 +1,2 @@
-"""Rice Grain Quality Analyzer CV Pipeline package."""
+# Rice Grain Quality Analyzer CV Pipeline package.
 __version__ = "0.1.0"

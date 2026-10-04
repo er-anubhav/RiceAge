@@ -1,4 +1,4 @@
-"""Reporting package for visualizations, data export, and experiment reports."""
+# Reporting package for visualizations, data export, and experiment reports.
 
 from .visualizer import (
     create_segmentation_overlay,

@@ -1,4 +1,4 @@
-"""Markdown experiment report generator for Rice Grain Quality Analyzer."""
+# Markdown experiment report generator for Rice Grain Quality Analyzer.
 
 import os
 from typing import Dict, Any
@@ -10,7 +10,7 @@ def generate_experiment_report(
     df: pd.DataFrame,
     output_path: str = "outputs/reports/M0_BASELINE_REPORT.md"
 ) -> str:
-    """Generate a technical ML/CV experiment report for Milestone M0."""
+    # Generate a technical ML/CV experiment report for Milestone M0.
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
     calib = summary.get("calibration", {})

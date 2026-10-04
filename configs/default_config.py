@@ -1,4 +1,4 @@
-"""Configuration parameters for the Rice Grain Quality Analyzer pipeline."""
+# Configuration parameters for the Rice Grain Quality Analyzer pipeline.
 
 from dataclasses import dataclass, field
 from typing import Tuple, Optional
@@ -6,7 +6,7 @@ from typing import Tuple, Optional
 
 @dataclass
 class PreprocessingConfig:
-    """Preprocessing and border clearing settings."""
+    # Preprocessing and border clearing settings.
     gaussian_kernel: int = 5
     gaussian_sigma: float = 0.8
     # Saturated bezel threshold for scanner edges
@@ -19,7 +19,7 @@ class PreprocessingConfig:
 
 @dataclass
 class CalibrationConfig:
-    """Calibration settings for converting pixels to millimeters."""
+    # Calibration settings for converting pixels to millimeters.
     # Assumed DPI if metadata is missing or if downscaled
     assumed_dpi: Optional[float] = None
     # Nominal 1200 DPI scanner physical constant (1 inch = 25.4 mm)
@@ -29,7 +29,7 @@ class CalibrationConfig:
 
 @dataclass
 class SegmentationConfig:
-    """Segmentation and thresholding parameters."""
+    # Segmentation and thresholding parameters.
     method: str = "otsu"  # 'otsu', 'adaptive', 'triangle'
     # Morphological cleaning
     morph_kernel_size: int = 3
@@ -39,7 +39,7 @@ class SegmentationConfig:
 
 @dataclass
 class SeparationConfig:
-    """Touching grain separation (watershed & distance transform) settings."""
+    # Touching grain separation (watershed & distance transform) settings.
     enable_watershed: bool = True
     # Area threshold above which a connected component is scrutinized as a cluster
     cluster_area_threshold_px: int = 650
@@ -54,7 +54,7 @@ class SeparationConfig:
 
 @dataclass
 class MeasurementConfig:
-    """Feature extraction and metrics calculation settings."""
+    # Feature extraction and metrics calculation settings.
     calculate_color: bool = True
     calculate_highlight_ratio: bool = True
     specular_highlight_thresh: int = 240
@@ -64,7 +64,7 @@ class MeasurementConfig:
 
 @dataclass
 class ClassificationConfig:
-    """Baseline rule-based quality categorization."""
+    # Baseline rule-based quality categorization.
     # Broken grain length ratio relative to whole grain median length (Codex/IRRI standard: < 75%)
     broken_length_ratio_thresh: float = 0.75
     # Aspect ratio threshold (length / width)
@@ -73,7 +73,7 @@ class ClassificationConfig:
 
 @dataclass
 class ExportConfig:
-    """Output generation settings."""
+    # Output generation settings.
     save_crops: bool = True
     save_masks: bool = True
     max_crops_to_save: int = 1000  # save up to 1000 crops
@@ -86,7 +86,7 @@ class ExportConfig:
 
 @dataclass
 class PipelineConfig:
-    """Master pipeline configuration."""
+    # Master pipeline configuration.
     preprocessing: PreprocessingConfig = field(default_factory=PreprocessingConfig)
     calibration: CalibrationConfig = field(default_factory=CalibrationConfig)
     segmentation: SegmentationConfig = field(default_factory=SegmentationConfig)

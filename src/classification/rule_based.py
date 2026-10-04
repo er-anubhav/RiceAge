@@ -1,4 +1,4 @@
-"""Rule-based morphological quality classifier based on international grain standards."""
+# Rule-based morphological quality classifier based on international grain standards.
 
 from typing import Dict, Any, List
 import pandas as pd
@@ -12,15 +12,7 @@ def classify_grains_rule_based(
     broken_length_ratio_thresh: float = 0.75,
     broken_aspect_ratio_thresh: float = 1.6
 ) -> pd.DataFrame:
-    """Classify grains into WHOLE_RICE, BROKEN_RICE, or UNRESOLVED_CLUSTER based on morphology.
-    
-    Standard definition (Codex Alimentarius CXS 198-1995 / USDA / IRRI):
-    - Broken kernel: A piece of kernel that is smaller than three-quarters (75%)
-      of the average length of the unbroken kernel.
-    
-    Returns:
-        DataFrame augmented with 'quality_class' and 'classification_reason'.
-    """
+    # Classify grains into WHOLE_RICE, BROKEN_RICE, or UNRESOLVED_CLUSTER based on morphology. Standard definition (Codex Alimentarius CXS 198-1995 / USDA / IRRI): - Broken kernel: A piece of kernel that is smaller than three-quarters (75%) of the average length of the unbroken kernel. Returns: DataFrame augmented with 'quality_class' and 'classification_reason'.
     df = measurements_df.copy()
     if df.empty:
         df["quality_class"] = []

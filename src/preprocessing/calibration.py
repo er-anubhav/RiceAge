@@ -1,4 +1,4 @@
-"""Image calibration and physical dimension resolution module."""
+# Image calibration and physical dimension resolution module.
 
 from dataclasses import dataclass
 from typing import Dict, Any, Optional
@@ -9,7 +9,7 @@ from PIL.ExifTags import TAGS
 
 @dataclass
 class CalibrationResult:
-    """Stores verified or estimated pixel-to-metric calibration."""
+    # Stores verified or estimated pixel-to-metric calibration.
     is_verified: bool
     effective_dpi: Optional[float]
     pixel_scale_mm: Optional[float]  # millimeters per pixel
@@ -19,10 +19,7 @@ class CalibrationResult:
 
 
 def inspect_metadata(image_path: str) -> Dict[str, Any]:
-    """Inspect and extract all available metadata from the image file.
-    
-    Returns a dictionary of dimensions, format, DPI tags, JFIF, and EXIF fields.
-    """
+    # Inspect and extract all available metadata from the image file. Returns a dictionary of dimensions, format, DPI tags, JFIF, and EXIF fields.
     if not os.path.exists(image_path):
         raise FileNotFoundError(f"Image not found at path: {image_path}")
 
@@ -63,15 +60,7 @@ def resolve_calibration(
     raw_reference_path: Optional[str] = None,
     assumed_dpi: Optional[float] = None
 ) -> CalibrationResult:
-    """Determine the physical calibration (mm/pixel) for an image.
-    
-    Strict rules:
-    - Never assume 1200 DPI unless verified in metadata or derived via verified scale factor.
-    - If image contains authentic 1200 DPI metadata: 1 inch = 25.4 mm -> 1 px = 25.4 / 1200 = 0.0211667 mm.
-    - If image is a downsampled representation of a verified 1200 DPI raw scan, compute
-      the exact relative downsampling factor and determine the effective DPI / scale.
-    - If metadata has no verified DPI and no verified reference is provided, return is_verified=False.
-    """
+    # Determine the physical calibration (mm/pixel) for an image. Strict rules: - Never assume 1200 DPI unless verified in metadata or derived via verified scale factor. - If image contains authentic 1200 DPI metadata: 1 inch = 25.4 mm -> 1 px = 25.4 / 1200 = 0.0211667 mm. - If image is a downsampled representation of a verified 1200 DPI raw scan, compute the exact relative downsampling factor and determine the effective DPI / scale. - If metadata has no verified DPI and no verified reference is provided, return is_verified=False.
     meta = inspect_metadata(image_path)
     w, h = meta["width_px"], meta["height_px"]
 

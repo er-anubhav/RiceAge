@@ -1,4 +1,4 @@
-"""Per-grain morphological feature extraction module."""
+# Per-grain morphological feature extraction module.
 
 from dataclasses import dataclass
 from typing import Tuple, Optional, Dict, Any, List
@@ -12,7 +12,7 @@ from src.preprocessing.border_clearing import is_boundary_grain
 
 @dataclass
 class GrainMorphology:
-    """Geometric and morphological features of an individual rice grain."""
+    # Geometric and morphological features of an individual rice grain.
     grain_id: int
     bbox_x: int
     bbox_y: int
@@ -89,7 +89,7 @@ def extract_grain_morphology(
     calibration: Optional[CalibrationResult] = None,
     separation_status: str = "isolated_single"
 ) -> Optional[GrainMorphology]:
-    """Calculate geometric metrics for a single grain binary mask."""
+    # Calculate geometric metrics for a single grain binary mask.
     contours, _ = cv2.findContours(grain_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     if not contours:
         return None

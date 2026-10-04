@@ -1,4 +1,4 @@
-"""Preprocessing module for Rice Grain Quality Analyzer."""
+# Preprocessing module for Rice Grain Quality Analyzer.
 
 from .calibration import inspect_metadata, resolve_calibration, CalibrationResult
 from .border_clearing import detect_scanner_margins, clear_scanner_bezel, is_boundary_grain

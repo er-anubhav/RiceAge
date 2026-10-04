@@ -1,4 +1,4 @@
-"""End-to-end execution pipeline for Rice Grain Quality Analyzer."""
+# End-to-end execution pipeline for Rice Grain Quality Analyzer.
 
 import os
 import datetime
@@ -31,7 +31,7 @@ from src.reporting.report_generator import generate_experiment_report
 
 
 class RiceQualityPipeline:
-    """Master pipeline orchestrating end-to-end rice grain analysis."""
+    # Master pipeline orchestrating end-to-end rice grain analysis.
 
     def __init__(self, config: Optional[PipelineConfig] = None):
         self.config = config or PipelineConfig()
@@ -111,7 +111,7 @@ class RiceQualityPipeline:
         raw_reference_path: Optional[str] = None,
         generate_outputs: bool = True
     ) -> Dict[str, Any]:
-        """Execute complete pipeline on an input image."""
+        # Execute complete pipeline on an input image.
         if not os.path.exists(image_path):
             raise FileNotFoundError(f"Input image not found: {image_path}")
 

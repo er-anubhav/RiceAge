@@ -1,4 +1,4 @@
-"""Cluster side-by-side comparison and diagnostic montage generator."""
+# Cluster side-by-side comparison and diagnostic montage generator.
 
 import os
 from typing import Dict, Any, List, Tuple
@@ -8,7 +8,7 @@ import pandas as pd
 
 
 def colorize_roi(roi_labels: np.ndarray, base_crop_bgr: np.ndarray, alpha: float = 0.5) -> np.ndarray:
-    """Colorize a labeled sub-mask onto a base crop."""
+    # Colorize a labeled sub-mask onto a base crop.
     h, w = roi_labels.shape[:2]
     vis = base_crop_bgr.copy()
     
@@ -42,11 +42,7 @@ def create_cluster_comparison_panel(
     cluster_roi_info: Dict[str, Any],
     padding: int = 6
 ) -> np.ndarray:
-    """Generate a 4-panel side-by-side comparison for a single cluster.
-    
-    Panels:
-    [ 1. Original RGB Crop | 2. Watershed Result | 3. Concave-Neck Result | 4. Final Hybrid Result ]
-    """
+    # Generate a 4-panel side-by-side comparison for a single cluster. Panels: [ 1. Original RGB Crop | 2. Watershed Result | 3. Concave-Neck Result | 4. Final Hybrid Result ]
     comp_x, comp_y, comp_w, comp_h = cluster_roi_info["bbox"]
     img_h, img_w = original_bgr.shape[:2]
 
@@ -121,7 +117,7 @@ def create_unresolved_clusters_montage(
     benchmark_df: pd.DataFrame,
     output_path: str = "outputs/visualizations/unresolved_clusters_montage.jpg"
 ) -> str:
-    """Create a structured diagnostic montage of all clusters repaired by concave neck."""
+    # Create a structured diagnostic montage of all clusters repaired by concave neck.
     repaired_records = benchmark_df[benchmark_df["confidence_status"] == "repaired_by_concave"]
     if repaired_records.empty:
         # Fallback to any clusters if none repaired

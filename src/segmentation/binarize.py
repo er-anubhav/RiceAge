@@ -1,4 +1,4 @@
-"""Foreground/background segmentation and threshold comparison module."""
+# Foreground/background segmentation and threshold comparison module.
 
 from typing import Tuple, Dict, Any
 import numpy as np
@@ -7,12 +7,7 @@ from skimage import filters
 
 
 def segment_otsu(gray_image: np.ndarray) -> Tuple[np.ndarray, float]:
-    """Segment image using Otsu's optimal global thresholding.
-    
-    Returns:
-        binary_mask: uint8 array (0 = background, 255 = foreground)
-        thresh_value: float threshold chosen by Otsu's method.
-    """
+    # Segment image using Otsu's optimal global thresholding. Returns: binary_mask: uint8 array (0 = background, 255 = foreground) thresh_value: float threshold chosen by Otsu's method.
     thresh_val, binary = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     return binary, float(thresh_val)
 
@@ -22,12 +17,7 @@ def segment_adaptive(
     block_size: int = 51,
     constant_c: int = 8
 ) -> Tuple[np.ndarray, float]:
-    """Segment image using Adaptive Gaussian thresholding.
-    
-    Returns:
-        binary_mask: uint8 array (0 = background, 255 = foreground)
-        thresh_value: mean effective threshold across image.
-    """
+    # Segment image using Adaptive Gaussian thresholding. Returns: binary_mask: uint8 array (0 = background, 255 = foreground) thresh_value: mean effective threshold across image.
     if block_size % 2 == 0:
         block_size += 1
     binary = cv2.adaptiveThreshold(
@@ -42,25 +32,20 @@ def segment_adaptive(
 
 
 def segment_triangle(gray_image: np.ndarray) -> Tuple[np.ndarray, float]:
-    """Segment image using Triangle thresholding (well-suited for unimodal with shoulder).
-    
-    Returns:
-        binary_mask: uint8 array (0 = background, 255 = foreground)
-        thresh_val: float threshold chosen by Triangle method.
-    """
+    # Segment image using Triangle thresholding (well-suited for unimodal with shoulder). Returns: binary_mask: uint8 array (0 = background, 255 = foreground) thresh_val: float threshold chosen by Triangle method.
     thresh_val, binary = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_TRIANGLE)
     return binary, float(thresh_val)
 
 
 def segment_yen(gray_image: np.ndarray) -> Tuple[np.ndarray, float]:
-    """Segment image using Yen's entropy-based thresholding."""
+    # Segment image using Yen's entropy-based thresholding.
     val = filters.threshold_yen(gray_image)
     binary = (gray_image > val).astype(np.uint8) * 255
     return binary, float(val)
 
 
 def segment_li(gray_image: np.ndarray) -> Tuple[np.ndarray, float]:
-    """Segment image using Li's minimum cross entropy thresholding."""
+    # Segment image using Li's minimum cross entropy thresholding.
     val = filters.threshold_li(gray_image)
     binary = (gray_image > val).astype(np.uint8) * 255
     return binary, float(val)
@@ -77,7 +62,7 @@ def _compute_contour_gradient_energy(mask: np.ndarray, grad_mag: np.ndarray) -> 
 
 
 def compare_segmentation_methods(gray_image: np.ndarray) -> Dict[str, Dict[str, Any]]:
-    """Run and quantitatively compare multiple thresholding approaches."""
+    # Run and quantitatively compare multiple thresholding approaches.
     methods = {
         "otsu": segment_otsu,
         "triangle": segment_triangle,
