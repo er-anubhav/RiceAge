@@ -15,7 +15,7 @@ from src.preprocessing.border_clearing import clear_scanner_bezel
 from src.preprocessing.denoise import preprocess_image
 from src.segmentation.binarize import segment_otsu
 from src.segmentation.morphology import cleanup_mask
-from src.separation.hybrid_separation import benchmark_and_separate_hybrid
+from src.separation import benchmark_and_separate_hybrid
 from src.measurement import measure_all_grains
 from src.classification.rule_based import classify_grains_rule_based
 from src.reporting.visualizer import create_instances_visualization, create_measurements_visualization, save_visualization
