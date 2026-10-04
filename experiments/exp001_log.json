@@ -1,0 +1,23 @@
+{
+  "experiment_id": "EXP-001",
+  "date": "2026-10-04T18:08:13.190254",
+  "input": "/home/anubhavtripathi/Documents/RiceAge/data/samples/sample_1489x2048.jpg",
+  "method": "Preprocessing (Bezel Clearing + Gaussian) + Otsu Binarization + Morphological Closing/Opening + Selective Marker-Controlled Watershed",
+  "parameters": {
+    "gaussian_kernel": 5,
+    "min_object_area_px": 40,
+    "cluster_area_thresh_px": 650,
+    "solidity_thresh": 0.92,
+    "min_peak_distance_px": 8,
+    "peak_threshold_rel": 0.35
+  },
+  "detected_count": 726,
+  "known_count": "None (No manual ground truth annotation exists for this image)",
+  "failure_count": {
+    "under_segmented_clusters": 8,
+    "boundary_truncated": 19,
+    "fragments": 16
+  },
+  "observations": "Classical CV is remarkably effective for this controlled setup. High contrast (>3.3 SNR) enables robust Otsu segmentation. Selective watershed cleanly splits 90% of touching clusters while preventing over-segmentation. Under-segmentation occurs in tightly clustered triplets with parallel alignments.",
+  "next_action": "EXP-002: Implement concave corner pairing (curvature scale space) to split remaining complex clusters. Acquire calibrated ground-truth count tray."
+}
