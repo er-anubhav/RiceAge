@@ -1,25 +1,42 @@
-# Rule-based morphological quality classifier based on international grain standards.
+# Grain quality taxonomy and rule-based morphological classifier.
 
+from enum import Enum
 from typing import Dict, Any, List
 import pandas as pd
 import numpy as np
 
-from .taxonomy import RealDataTaxonomy
+
+class RealDataTaxonomy(str, Enum):
+    # Taxonomy verified and present in current controlled scanner clean rice data.
+    WHOLE_RICE = "WHOLE_RICE"
+    BROKEN_RICE = "BROKEN_RICE"
 
 
+class FutureDefectTaxonomy(str, Enum):
+    # Target defect taxonomy for supervised models with labeled data.
+    WHOLE_RICE = "WHOLE_RICE"
+    BROKEN_RICE = "BROKEN_RICE"
+    CHALKY_RICE = "CHALKY_RICE"
+    DISCOLORED_RICE = "DISCOLORED_RICE"
+    DAMAGED_RICE = "DAMAGED_RICE"
+    PEST_DAMAGED = "PEST_DAMAGED"
+    UNRIPE_RICE = "UNRIPE_RICE"
+    FOREIGN_MATERIAL = "FOREIGN_MATERIAL"
+    OTHER_GRAIN = "OTHER_GRAIN"
+
+
+# Classify grains into WHOLE_RICE, BROKEN_RICE, or UNRESOLVED_CLUSTER based on morphology.
 def classify_grains_rule_based(
     measurements_df: pd.DataFrame,
     broken_length_ratio_thresh: float = 0.75,
     broken_aspect_ratio_thresh: float = 1.6
 ) -> pd.DataFrame:
-    # Classify grains into WHOLE_RICE, BROKEN_RICE, or UNRESOLVED_CLUSTER based on morphology. Standard definition (Codex Alimentarius CXS 198-1995 / USDA / IRRI): - Broken kernel: A piece of kernel that is smaller than three-quarters (75%) of the average length of the unbroken kernel. Returns: DataFrame augmented with 'quality_class' and 'classification_reason'.
     df = measurements_df.copy()
     if df.empty:
         df["quality_class"] = []
         df["classification_reason"] = []
         return df
 
-    # Filter isolated single or separated grains to estimate median unbroken length
     unbroken_candidates = df[
         (df["separation_status"].isin(["isolated_single", "separated_from_cluster"])) &
         (~df["is_boundary"]) &

@@ -8,26 +8,21 @@ import pandas as pd
 import cv2
 
 from configs.default_config import PipelineConfig
-from src.preprocessing.calibration import resolve_calibration, inspect_metadata
-from src.preprocessing.border_clearing import clear_scanner_bezel
-from src.preprocessing.denoise import preprocess_image
-from src.segmentation.binarize import segment_otsu, compare_segmentation_methods
-from src.segmentation.morphology import cleanup_mask
-from src.separation.separate import separate_touching_grains
-from src.measurement.measurement import measure_all_grains
-from src.classification.rule_based import classify_grains_rule_based
-from src.reporting.visualizer import (
+from src.preprocessing import resolve_calibration, clear_scanner_bezel, preprocess_image
+from src.segmentation import segment_otsu, compare_segmentation_methods, cleanup_mask
+from src.separation import separate_touching_grains
+from src.measurement import measure_all_grains
+from src.classification import classify_grains_rule_based
+from src.reporting import (
     create_segmentation_overlay,
     create_instances_visualization,
     create_measurements_visualization,
     save_visualization,
-)
-from src.reporting.exporter import (
     export_crops_and_masks,
     export_measurements_csv,
     export_summary_json,
+    generate_experiment_report,
 )
-from src.reporting.report_generator import generate_experiment_report
 
 
 class RiceQualityPipeline:

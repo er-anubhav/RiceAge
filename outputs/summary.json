@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-04T18:55:56.603023",
+  "timestamp": "2026-10-04T19:03:47.701147",
   "image_path": "data/samples/sample_1489x2048.jpg",
   "image_dimensions": {
     "width": 1489,
@@ -99,7 +99,7 @@
     "aspect_ratio_std": 0.55,
     "aspect_ratio_median": 2.2,
     "aspect_ratio_min": 1.04,
-    "aspect_ratio_max": 4.77,
+    "aspect_ratio_max": 4.76,
     "circularity_mean": 0.67,
     "circularity_std": 0.07,
     "circularity_median": 0.68,

@@ -1,6 +1,6 @@
 # Rice Grain Quality Analyzer: M0 Baseline Experiment Report
 
-**Date:** 2026-10-04T18:55:56.603023  
+**Date:** 2026-10-04T19:03:47.701147  
 **Experiment ID:** EXP-001-M0-BASELINE  
 **Image Processed:** `data/samples/sample_1489x2048.jpg`  
 **Pipeline Mode:** Classical Computer Vision Baseline (No synthetic labels, No deep learning)
@@ -79,7 +79,7 @@
 | **Length (mm)** | 4.73 ± 1.02 | 4.84 | 1.93 | 7.99 |
 | **Width (mm)** | 2.17 ± 0.46 | 2.15 | 0.59 | 4.96 |
 | **Area (mm²)** | 7.74 ± 2.64 | 7.88 | 1.14 | 26.00 |
-| **Aspect Ratio (L/W)** | 2.23 ± 0.55 | 2.20 | 1.04 | 4.77 |
+| **Aspect Ratio (L/W)** | 2.23 ± 0.55 | 2.20 | 1.04 | 4.76 |
 | **Circularity** | 0.670 ± 0.070 | 0.680 | 0.390 | 0.890 |
 | **Solidity** | 0.950 ± 0.020 | 0.960 | 0.790 | 0.990 |
 

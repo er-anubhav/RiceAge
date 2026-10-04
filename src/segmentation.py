@@ -1,23 +1,24 @@
-# Foreground/background segmentation and threshold comparison module.
+# Image segmentation: thresholding and morphological cleanup.
 
 from typing import Tuple, Dict, Any
 import numpy as np
 import cv2
 from skimage import filters
+from scipy import ndimage as ndi
 
 
+# Segment image using Otsu's optimal global thresholding.
 def segment_otsu(gray_image: np.ndarray) -> Tuple[np.ndarray, float]:
-    # Segment image using Otsu's optimal global thresholding. Returns: binary_mask: uint8 array (0 = background, 255 = foreground) thresh_value: float threshold chosen by Otsu's method.
     thresh_val, binary = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     return binary, float(thresh_val)
 
 
+# Segment image using Adaptive Gaussian thresholding.
 def segment_adaptive(
     gray_image: np.ndarray,
     block_size: int = 51,
     constant_c: int = 8
 ) -> Tuple[np.ndarray, float]:
-    # Segment image using Adaptive Gaussian thresholding. Returns: binary_mask: uint8 array (0 = background, 255 = foreground) thresh_value: mean effective threshold across image.
     if block_size % 2 == 0:
         block_size += 1
     binary = cv2.adaptiveThreshold(
@@ -31,21 +32,21 @@ def segment_adaptive(
     return binary, float(constant_c)
 
 
+# Segment image using Triangle thresholding.
 def segment_triangle(gray_image: np.ndarray) -> Tuple[np.ndarray, float]:
-    # Segment image using Triangle thresholding (well-suited for unimodal with shoulder). Returns: binary_mask: uint8 array (0 = background, 255 = foreground) thresh_val: float threshold chosen by Triangle method.
     thresh_val, binary = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_TRIANGLE)
     return binary, float(thresh_val)
 
 
+# Segment image using Yen's entropy-based thresholding.
 def segment_yen(gray_image: np.ndarray) -> Tuple[np.ndarray, float]:
-    # Segment image using Yen's entropy-based thresholding.
     val = filters.threshold_yen(gray_image)
     binary = (gray_image > val).astype(np.uint8) * 255
     return binary, float(val)
 
 
+# Segment image using Li's minimum cross entropy thresholding.
 def segment_li(gray_image: np.ndarray) -> Tuple[np.ndarray, float]:
-    # Segment image using Li's minimum cross entropy thresholding.
     val = filters.threshold_li(gray_image)
     binary = (gray_image > val).astype(np.uint8) * 255
     return binary, float(val)
@@ -61,8 +62,8 @@ def _compute_contour_gradient_energy(mask: np.ndarray, grad_mag: np.ndarray) -> 
     return float(np.mean(grad_mag[edge_pixels])) if np.any(edge_pixels) else 0.0
 
 
+# Run and quantitatively compare multiple thresholding approaches.
 def compare_segmentation_methods(gray_image: np.ndarray) -> Dict[str, Dict[str, Any]]:
-    # Run and quantitatively compare multiple thresholding approaches.
     methods = {
         "otsu": segment_otsu,
         "triangle": segment_triangle,
@@ -91,3 +92,37 @@ def compare_segmentation_methods(gray_image: np.ndarray) -> Dict[str, Dict[str, 
 
     return results
 
+
+# Fill internal cavities and hollow specular holes inside rice grains.
+def fill_binary_holes(mask: np.ndarray) -> np.ndarray:
+    filled = ndi.binary_fill_holes(mask > 0)
+    return filled.astype(np.uint8) * 255
+
+
+# Filter out noise, dust, and minute scanner artifacts smaller than min_area_px.
+def remove_small_objects(mask: np.ndarray, min_area_px: int = 40) -> np.ndarray:
+    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(mask, connectivity=8)
+    clean_mask = np.zeros_like(mask)
+    for label in range(1, num_labels):
+        if stats[label, cv2.CC_STAT_AREA] >= min_area_px:
+            clean_mask[labels == label] = 255
+    return clean_mask
+
+
+# Perform hole filling, morphological opening, and small noise removal.
+def cleanup_mask(
+    binary_mask: np.ndarray,
+    kernel_size: int = 3,
+    min_area_px: int = 40,
+    fill_holes: bool = True
+) -> np.ndarray:
+    processed = fill_binary_holes(binary_mask) if fill_holes else binary_mask.copy()
+
+    if kernel_size > 1:
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size, kernel_size))
+        processed = cv2.morphologyEx(processed, cv2.MORPH_OPEN, kernel, iterations=1)
+
+    if min_area_px > 0:
+        processed = remove_small_objects(processed, min_area_px=min_area_px)
+
+    return processed
