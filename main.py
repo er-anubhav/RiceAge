@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
+# Entrypoint for running the Rice Grain Quality Analyzer pipeline.
+
 import argparse
 import sys
 import os
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
@@ -12,11 +14,11 @@ from src.pipeline import RiceQualityPipeline
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Rice Grain Quality Analyzer - Baseline Pipeline")
-    parser.add_argument("--image", type=str, default="data/samples/sample_1489x2048.jpg")
-    parser.add_argument("--raw-reference", type=str, default="data/raw/laserjet_1200dpi_sample.jpg")
-    parser.add_argument("--output-dir", type=str, default="outputs")
-    parser.add_argument("--max-crops", type=int, default=1000)
+    parser = argparse.ArgumentParser(description="Rice Grain Quality Analyzer - Main Pipeline")
+    parser.add_argument("--image", type=str, default="data/samples/sample_1489x2048.jpg", help="Path to input rice grain image")
+    parser.add_argument("--raw-reference", type=str, default="data/raw/laserjet_1200dpi_sample.jpg", help="Path to reference raw scan for DPI derivation")
+    parser.add_argument("--output-dir", type=str, default="outputs", help="Directory where artifacts are exported")
+    parser.add_argument("--max-crops", type=int, default=1000, help="Maximum individual grain crops to save")
     args = parser.parse_args()
 
     cfg = PipelineConfig()
@@ -34,7 +36,7 @@ def main():
         generate_outputs=True
     )
     s = results["summary"]
-    print(f"Done | Grains: {s['total_grains_detected']} | Split: {s['separation']['clusters_successfully_split']}/{s['separation']['clusters_detected']}")
+    print(f"Pipeline Complete | Grains: {s['total_grains_detected']} | Split: {s['separation']['clusters_successfully_split']}/{s['separation']['clusters_detected']}")
 
 
 if __name__ == "__main__":

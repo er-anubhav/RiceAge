@@ -1,8 +1,8 @@
 # Rice Grain Quality Analyzer: M0 Baseline Experiment Report
 
-**Date:** 2026-10-04T18:08:13.190254  
+**Date:** 2026-10-04T18:55:56.603023  
 **Experiment ID:** EXP-001-M0-BASELINE  
-**Image Processed:** `/home/anubhavtripathi/Documents/RiceAge/data/samples/sample_1489x2048.jpg`  
+**Image Processed:** `data/samples/sample_1489x2048.jpg`  
 **Pipeline Mode:** Classical Computer Vision Baseline (No synthetic labels, No deep learning)
 
 ---

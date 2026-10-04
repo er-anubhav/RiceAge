@@ -13,8 +13,8 @@ from src.preprocessing.border_clearing import clear_scanner_bezel
 from src.preprocessing.denoise import preprocess_image
 from src.segmentation.binarize import segment_otsu, compare_segmentation_methods
 from src.segmentation.morphology import cleanup_mask
-from src.separation import separate_touching_grains
-from src.measurement import measure_all_grains
+from src.separation.separate import separate_touching_grains
+from src.measurement.measurement import measure_all_grains
 from src.classification.rule_based import classify_grains_rule_based
 from src.reporting.visualizer import (
     create_segmentation_overlay,
