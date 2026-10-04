@@ -36,6 +36,51 @@ class GrainMorphology:
     area_mm2: Optional[float] = None
 
 
+def _compute_centroid(contour: np.ndarray) -> Tuple[float, float]:
+    m = cv2.moments(contour)
+    if m["m00"] != 0:
+        return float(m["m10"] / m["m00"]), float(m["m01"] / m["m00"])
+    return float(contour[:, 0, 0].mean()), float(contour[:, 0, 1].mean())
+
+
+def _compute_oriented_dimensions(contour: np.ndarray) -> Tuple[float, float, float]:
+    rect = cv2.minAreaRect(contour)
+    (_, (dim1, dim2), angle) = rect
+    length = max(dim1, dim2)
+    width = min(dim1, dim2)
+    major_angle = (angle + 90.0) % 180.0 if dim1 < dim2 else angle % 180.0
+
+    if len(contour) >= 5:
+        try:
+            (_, (e_dim1, e_dim2), e_angle) = cv2.fitEllipse(contour)
+            e_major, e_minor = max(e_dim1, e_dim2), min(e_dim1, e_dim2)
+            if 0.7 * length <= e_major <= 1.3 * length and e_minor > 0:
+                length, width, major_angle = e_major, e_minor, e_angle % 180.0
+        except cv2.error:
+            pass
+
+    return length, width, major_angle
+
+
+def _compute_shape_factors(
+    contour: np.ndarray,
+    area: float,
+    perimeter: float,
+    bbox_w: int,
+    bbox_h: int
+) -> Tuple[float, float, float]:
+    circularity = float(min(1.0, (4.0 * math.pi * area) / (perimeter ** 2))) if perimeter > 0 else 0.0
+
+    hull = cv2.convexHull(contour)
+    hull_area = cv2.contourArea(hull)
+    solidity = float(area / (hull_area + 1e-5)) if hull_area > 0 else 0.0
+
+    bbox_area = bbox_w * bbox_h
+    extent = float(area / (bbox_area + 1e-5)) if bbox_area > 0 else 0.0
+
+    return circularity, solidity, extent
+
+
 def extract_grain_morphology(
     grain_id: int,
     grain_mask: np.ndarray,
@@ -44,85 +89,24 @@ def extract_grain_morphology(
     calibration: Optional[CalibrationResult] = None,
     separation_status: str = "isolated_single"
 ) -> Optional[GrainMorphology]:
-    """Calculate geometric metrics for a single grain binary mask.
-    
-    Args:
-        grain_id: Unique integer identifier.
-        grain_mask: 2D binary uint8 mask of the grain across full image (or local ROI).
-        image_shape: (height, width) of the full image.
-        cleared_margins: (top, bottom, left, right) margins cleared during preprocessing.
-        calibration: CalibrationResult for physical metric conversion.
-        separation_status: Status string from separation stage.
-    """
+    """Calculate geometric metrics for a single grain binary mask."""
     contours, _ = cv2.findContours(grain_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     if not contours:
         return None
 
-    # Pick largest contour if multiple small disjoint fragments exist
     c = max(contours, key=cv2.contourArea)
     area = cv2.contourArea(c)
     if area < 5:
         return None
 
     perimeter = cv2.arcLength(c, closed=True)
-
-    # Moments for centroid
-    m = cv2.moments(c)
-    if m["m00"] != 0:
-        cx = float(m["m10"] / m["m00"])
-        cy = float(m["m01"] / m["m00"])
-    else:
-        cx, cy = float(c[:, 0, 0].mean()), float(c[:, 0, 1].mean())
-
-    # Upright bounding box
+    cx, cy = _compute_centroid(c)
     x, y, w, h = cv2.boundingRect(c)
-
-    # Minimum area bounding box (rotated rectangle for length and width)
-    rect = cv2.minAreaRect(c)
-    (_, (dim1, dim2), angle) = rect
-    length = max(dim1, dim2)
-    width = min(dim1, dim2)
-    
-    # Orientation: align major axis in degrees [0, 180)
-    # OpenCV minAreaRect returns angle of first edge; normalize to major axis
-    if dim1 < dim2:
-        major_angle = (angle + 90.0) % 180.0
-    else:
-        major_angle = angle % 180.0
-
-    # Fallback to fitted ellipse if contour has >= 5 points for smoother dimensions
-    if len(c) >= 5:
-        try:
-            ellipse = cv2.fitEllipse(c)
-            (_, (e_dim1, e_dim2), e_angle) = ellipse
-            e_major = max(e_dim1, e_dim2)
-            e_minor = min(e_dim1, e_dim2)
-            # Use ellipse if dimensions are consistent with minAreaRect
-            if 0.7 * length <= e_major <= 1.3 * length and e_minor > 0:
-                length = e_major
-                width = e_minor
-                major_angle = e_angle % 180.0
-        except Exception:
-            pass
-
+    length, width, major_angle = _compute_oriented_dimensions(c)
     aspect_ratio = float(length / (width + 1e-5))
 
-    # Circularity = 4 * pi * Area / Perimeter^2 (1.0 for perfect circle)
-    if perimeter > 0:
-        circularity = float(min(1.0, (4.0 * math.pi * area) / (perimeter ** 2)))
-    else:
-        circularity = 0.0
+    circularity, solidity, extent = _compute_shape_factors(c, area, perimeter, w, h)
 
-    # Solidity = Area / ConvexHullArea
-    hull = cv2.convexHull(c)
-    hull_area = cv2.contourArea(hull)
-    solidity = float(area / (hull_area + 1e-5)) if hull_area > 0 else 0.0
-
-    # Extent = Area / BoundingBoxArea
-    bbox_area = w * h
-    extent = float(area / (bbox_area + 1e-5)) if bbox_area > 0 else 0.0
-
-    # Boundary check
     boundary_flag = is_boundary_grain(
         (x, y, w, h),
         image_shape=image_shape,
@@ -130,15 +114,14 @@ def extract_grain_morphology(
         boundary_margin_px=4
     )
 
-    # Physical metrics if calibration verified
     length_mm = None
     width_mm = None
     area_mm2 = None
     if calibration and calibration.pixel_scale_mm is not None:
-        px_scale = calibration.pixel_scale_mm
-        length_mm = round(length * px_scale, 3)
-        width_mm = round(width * px_scale, 3)
-        area_mm2 = round(area * (px_scale ** 2), 4)
+        scale = calibration.pixel_scale_mm
+        length_mm = round(length * scale, 3)
+        width_mm = round(width * scale, 3)
+        area_mm2 = round(area * (scale ** 2), 4)
 
     return GrainMorphology(
         grain_id=grain_id,
@@ -163,3 +146,4 @@ def extract_grain_morphology(
         width_mm=width_mm,
         area_mm2=area_mm2
     )
+

@@ -5,54 +5,35 @@ import numpy as np
 import cv2
 
 
+def _scan_edge_margin(line_means: np.ndarray, max_search: int, saturation_thresh: int) -> int:
+    margin = 0
+    for idx in range(min(len(line_means), max_search)):
+        if line_means[idx] >= saturation_thresh:
+            margin = idx + 1
+        else:
+            break
+    return margin
+
+
 def detect_scanner_margins(
     gray_image: np.ndarray,
     saturation_thresh: int = 240,
     max_search_ratio: float = 0.05
 ) -> Tuple[int, int, int, int]:
-    """Detect saturated scanner glass bezel / document cover lines along image borders.
-    
-    Returns:
-        (top_margin, bottom_margin, left_margin, right_margin) in pixels.
-    """
+    """Detect saturated scanner glass bezel lines along image borders."""
     h, w = gray_image.shape[:2]
-    max_h_search = int(h * max_search_ratio)
-    max_w_search = int(w * max_search_ratio)
+    max_h = int(h * max_search_ratio)
+    max_w = int(w * max_search_ratio)
 
-    top_margin = 0
-    bottom_margin = 0
-    left_margin = 0
-    right_margin = 0
+    row_means = gray_image.mean(axis=1)
+    col_means = gray_image.mean(axis=0)
 
-    # Top margin (check from row 0 downwards)
-    for r in range(max_h_search):
-        if gray_image[r, :].mean() >= saturation_thresh:
-            top_margin = r + 1
-        else:
-            break
+    top = _scan_edge_margin(row_means, max_h, saturation_thresh)
+    bottom = _scan_edge_margin(row_means[::-1], max_h, saturation_thresh)
+    left = _scan_edge_margin(col_means, max_w, saturation_thresh)
+    right = _scan_edge_margin(col_means[::-1], max_w, saturation_thresh)
 
-    # Bottom margin (check from row h-1 upwards)
-    for r in range(h - 1, h - 1 - max_h_search, -1):
-        if gray_image[r, :].mean() >= saturation_thresh:
-            bottom_margin = h - r
-        else:
-            break
-
-    # Left margin (check from col 0 rightwards)
-    for c in range(max_w_search):
-        if gray_image[:, c].mean() >= saturation_thresh:
-            left_margin = c + 1
-        else:
-            break
-
-    # Right margin (check from col w-1 leftwards)
-    for c in range(w - 1, w - 1 - max_w_search, -1):
-        if gray_image[:, c].mean() >= saturation_thresh:
-            right_margin = w - c
-        else:
-            break
-
-    return top_margin, bottom_margin, left_margin, right_margin
+    return top, bottom, left, right
 
 
 def clear_scanner_bezel(
@@ -60,28 +41,14 @@ def clear_scanner_bezel(
     saturation_thresh: int = 240,
     safety_padding: int = 2
 ) -> Tuple[np.ndarray, Tuple[int, int, int, int]]:
-    """Detect and blank out saturated scanner edges.
-    
-    Returns:
-        cleaned_image: image with bezel pixels set to 0.
-        margins: (top, bottom, left, right) cleared margins.
-    """
-    if len(image.shape) == 3:
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    else:
-        gray = image
-
+    """Detect and blank out saturated scanner edges."""
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) if image.ndim == 3 else image
     top, bottom, left, right = detect_scanner_margins(gray, saturation_thresh=saturation_thresh)
-    
-    # Add a small safety padding to ensure no edge remnants
-    if top > 0:
-        top += safety_padding
-    if bottom > 0:
-        bottom += safety_padding
-    if left > 0:
-        left += safety_padding
-    if right > 0:
-        right += safety_padding
+
+    top = top + safety_padding if top > 0 else 0
+    bottom = bottom + safety_padding if bottom > 0 else 0
+    left = left + safety_padding if left > 0 else 0
+    right = right + safety_padding if right > 0 else 0
 
     cleaned = image.copy()
     h, w = cleaned.shape[:2]
@@ -104,26 +71,15 @@ def is_boundary_grain(
     cleared_margins: Tuple[int, int, int, int] = (0, 0, 0, 0),
     boundary_margin_px: int = 4
 ) -> bool:
-    """Check if a grain touches or lies within boundary_margin_px of active image edges.
-    
-    Args:
-        bbox: (x, y, w, h)
-        image_shape: (height, width)
-        cleared_margins: (top, bottom, left, right)
-        boundary_margin_px: safety distance
-    """
+    """Check if a grain touches or lies within boundary_margin_px of active image edges."""
     x, y, bw, bh = bbox
     img_h, img_w = image_shape[:2]
     top_m, bot_m, left_m, right_m = cleared_margins
 
-    effective_min_x = left_m + boundary_margin_px
-    effective_max_x = img_w - right_m - boundary_margin_px
-    effective_min_y = top_m + boundary_margin_px
-    effective_max_y = img_h - bot_m - boundary_margin_px
+    min_x = left_m + boundary_margin_px
+    max_x = img_w - right_m - boundary_margin_px
+    min_y = top_m + boundary_margin_px
+    max_y = img_h - bot_m - boundary_margin_px
 
-    if x <= effective_min_x or (x + bw) >= effective_max_x:
-        return True
-    if y <= effective_min_y or (y + bh) >= effective_max_y:
-        return True
+    return x <= min_x or (x + bw) >= max_x or y <= min_y or (y + bh) >= max_y
 
-    return False

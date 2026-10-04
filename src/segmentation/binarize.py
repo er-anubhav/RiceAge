@@ -66,15 +66,18 @@ def segment_li(gray_image: np.ndarray) -> Tuple[np.ndarray, float]:
     return binary, float(val)
 
 
+def _compute_contour_gradient_energy(mask: np.ndarray, grad_mag: np.ndarray) -> float:
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    if not contours:
+        return 0.0
+    edge_mask = np.zeros_like(mask)
+    cv2.drawContours(edge_mask, contours, -1, 255, 1)
+    edge_pixels = edge_mask > 0
+    return float(np.mean(grad_mag[edge_pixels])) if np.any(edge_pixels) else 0.0
+
+
 def compare_segmentation_methods(gray_image: np.ndarray) -> Dict[str, Dict[str, Any]]:
-    """Run and quantitatively compare multiple thresholding approaches.
-    
-    Evaluates:
-    - Threshold value
-    - Foreground pixel ratio
-    - Total connected components (raw)
-    - Average contour edge gradient magnitude
-    """
+    """Run and quantitatively compare multiple thresholding approaches."""
     methods = {
         "otsu": segment_otsu,
         "triangle": segment_triangle,
@@ -82,8 +85,7 @@ def compare_segmentation_methods(gray_image: np.ndarray) -> Dict[str, Dict[str, 
         "li": segment_li,
         "adaptive_gaussian": segment_adaptive,
     }
-    
-    # Precompute Sobel gradient magnitude for edge sharpness assessment
+
     grad_x = cv2.Sobel(gray_image, cv2.CV_32F, 1, 0, ksize=3)
     grad_y = cv2.Sobel(gray_image, cv2.CV_32F, 0, 1, ksize=3)
     grad_mag = cv2.magnitude(grad_x, grad_y)
@@ -92,24 +94,15 @@ def compare_segmentation_methods(gray_image: np.ndarray) -> Dict[str, Dict[str, 
     for name, func in methods.items():
         mask, val = func(gray_image)
         fg_ratio = float(np.mean(mask > 0))
-        num_cc, _, stats, _ = cv2.connectedComponentsWithStats(mask, connectivity=8)
-        
-        # Edge gradient energy: compute gradient magnitude along mask contours
-        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-        edge_mask = np.zeros_like(mask)
-        cv2.drawContours(edge_mask, contours, -1, 255, 1)
-        edge_pixels = edge_mask > 0
-        if np.any(edge_pixels):
-            avg_edge_grad = float(np.mean(grad_mag[edge_pixels]))
-        else:
-            avg_edge_grad = 0.0
+        num_cc, _, _, _ = cv2.connectedComponentsWithStats(mask, connectivity=8)
 
         results[name] = {
             "threshold_value": val,
             "foreground_ratio": fg_ratio,
             "raw_connected_components": num_cc - 1,
-            "edge_gradient_magnitude": avg_edge_grad,
+            "edge_gradient_magnitude": _compute_contour_gradient_energy(mask, grad_mag),
             "mask": mask
         }
 
     return results
+

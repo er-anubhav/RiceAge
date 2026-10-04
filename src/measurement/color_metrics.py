@@ -45,16 +45,13 @@ def extract_grain_color(
     mean_g = float(np.mean(g_vals))
     mean_b = float(np.mean(b_vals))
 
-    # Grayscale intensity
     gray_vals = 0.299 * r_vals + 0.587 * g_vals + 0.114 * b_vals
     mean_int = float(np.mean(gray_vals))
     std_int = float(np.std(gray_vals))
 
-    # Highlight ratio (specular glint reflecting lighting/lustre)
     highlight_count = np.sum(gray_vals >= specular_thresh)
     highlight_ratio = float(highlight_count / len(gray_vals))
 
-    # Surface uniformity: 1 - coefficient of variation (bounded [0, 1])
     cov = std_int / (mean_int + 1e-5)
     uniformity = float(max(0.0, 1.0 - cov))
 
@@ -68,3 +65,4 @@ def extract_grain_color(
         highlight_ratio=round(highlight_ratio, 4),
         uniformity=round(uniformity, 3)
     )
+
