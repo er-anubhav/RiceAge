@@ -1,6 +1,6 @@
 """Selective marker-controlled watershed segmentation for touching grain separation."""
 
-from typing import Tuple, Dict, Any, List
+from typing import Tuple, Dict, Any, List, Optional
 import numpy as np
 import cv2
 from scipy import ndimage as ndi
@@ -17,7 +17,8 @@ def separate_touching_grains(
     peak_threshold_rel: float = 0.38,
     cluster_area_thresh_px: int = 650,
     solidity_thresh: float = 0.92,
-    min_valid_area_px: int = 40
+    min_valid_area_px: int = 40,
+    min_single_area_px: Optional[int] = None
 ) -> Tuple[np.ndarray, Dict[int, Dict[str, Any]], Dict[str, Any]]:
     """Segment and separate touching grains using selective marker-controlled watershed.
     
@@ -65,11 +66,14 @@ def separate_touching_grains(
         # Extract local ROI for efficiency
         roi_mask = (cc_labels[comp_y:comp_y + comp_h, comp_x:comp_x + comp_w] == comp_idx).astype(np.uint8)
 
+        # Determine single grain minimum area threshold
+        actual_min_single = min_single_area_px if min_single_area_px is not None else int(round(cluster_area_thresh_px * (180.0 / 650.0)))
+
         # Check geometry
         geom = evaluate_component_geometry(
             roi_mask,
             solidity_thresh=solidity_thresh,
-            single_area_range=(180, cluster_area_thresh_px),
+            single_area_range=(actual_min_single, cluster_area_thresh_px),
             pair_area_range=(cluster_area_thresh_px, cluster_area_thresh_px * 2)
         )
         cat = geom["category"]

@@ -1,0 +1,129 @@
+{
+  "timestamp": "2026-10-04T18:12:34.158322",
+  "image_path": "data/samples/user_uploaded_744x1024.jpg",
+  "image_dimensions": {
+    "width": 744,
+    "height": 1024
+  },
+  "total_grains_detected": 760,
+  "calibration": {
+    "is_verified": true,
+    "effective_dpi": 87.56281118257424,
+    "pixel_scale_mm": 0.2900774844590054,
+    "pixels_per_mm": 3.4473547709674897,
+    "source_info": "Derived from verified 1200 DPI raw scan (10200x14028) with downsampling factor 13.7044x (effective 87.56 DPI)"
+  },
+  "preprocessing": {
+    "cleared_margins": [
+      0,
+      13,
+      0,
+      9
+    ]
+  },
+  "segmentation": {
+    "selected_method": "otsu",
+    "selected_threshold_val": 107.0,
+    "method_comparison": {
+      "otsu": {
+        "threshold_value": 107.0,
+        "foreground_ratio": 0.09811302923387097,
+        "raw_connected_components": 546,
+        "edge_gradient_magnitude": 361.0469055175781
+      },
+      "triangle": {
+        "threshold_value": 67.0,
+        "foreground_ratio": 0.1306756132392473,
+        "raw_connected_components": 468,
+        "edge_gradient_magnitude": 331.1691589355469
+      },
+      "yen": {
+        "threshold_value": 65.0,
+        "foreground_ratio": 0.13390850764448925,
+        "raw_connected_components": 489,
+        "edge_gradient_magnitude": 318.31011962890625
+      },
+      "li": {
+        "threshold_value": 95.37168445699541,
+        "foreground_ratio": 0.1055960706485215,
+        "raw_connected_components": 528,
+        "edge_gradient_magnitude": 371.8913879394531
+      },
+      "adaptive_gaussian": {
+        "threshold_value": 8.0,
+        "foreground_ratio": 0.6607416624663979,
+        "raw_connected_components": 646,
+        "edge_gradient_magnitude": 92.61351776123047
+      }
+    }
+  },
+  "separation": {
+    "raw_connected_components": 549,
+    "total_detected_grains": 761,
+    "isolated_single_grains": 394,
+    "clusters_detected": 139,
+    "clusters_successfully_split": 113,
+    "clusters_unresolved": 26,
+    "grains_derived_from_clusters": 325,
+    "fragments_count": 16
+  },
+  "quality_counts": {
+    "WHOLE_RICE": 492,
+    "BROKEN_RICE": 224,
+    "UNRESOLVED_CLUSTER": 26,
+    "BOUNDARY_TRUNCATED": 18
+  },
+  "status_counts": {
+    "isolated_single": 394,
+    "separated_from_cluster": 325,
+    "under_segmented_cluster": 26,
+    "over_segmented_fragment": 15
+  },
+  "morphology_statistics": {
+    "length_px_mean": 14.69,
+    "length_px_std": 3.96,
+    "length_px_median": 15.55,
+    "length_px_min": 6.12,
+    "length_px_max": 27.74,
+    "width_px_mean": 7.31,
+    "width_px_std": 1.88,
+    "width_px_median": 7.16,
+    "width_px_min": 2.21,
+    "width_px_max": 17.71,
+    "area_px_mean": 80.34,
+    "area_px_std": 36.44,
+    "area_px_median": 80.75,
+    "area_px_min": 12.5,
+    "area_px_max": 316.5,
+    "aspect_ratio_mean": 2.07,
+    "aspect_ratio_std": 0.6,
+    "aspect_ratio_median": 2.06,
+    "aspect_ratio_min": 1.02,
+    "aspect_ratio_max": 5.54,
+    "circularity_mean": 0.69,
+    "circularity_std": 0.08,
+    "circularity_median": 0.7,
+    "circularity_min": 0.35,
+    "circularity_max": 0.9,
+    "solidity_mean": 0.94,
+    "solidity_std": 0.04,
+    "solidity_median": 0.94,
+    "solidity_min": 0.66,
+    "solidity_max": 1.0,
+    "length_mm_mean": 4.26,
+    "length_mm_std": 1.15,
+    "length_mm_median": 4.51,
+    "length_mm_min": 1.77,
+    "length_mm_max": 8.05,
+    "width_mm_mean": 2.12,
+    "width_mm_std": 0.54,
+    "width_mm_median": 2.08,
+    "width_mm_min": 0.64,
+    "width_mm_max": 5.14,
+    "area_mm2_mean": 6.76,
+    "area_mm2_std": 3.07,
+    "area_mm2_median": 6.79,
+    "area_mm2_min": 1.05,
+    "area_mm2_max": 26.63
+  }
+}

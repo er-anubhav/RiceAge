@@ -73,10 +73,22 @@ class RiceQualityPipeline:
             saturation_thresh=self.config.preprocessing.bezel_intensity_thresh
         )
 
+        # Compute relative scale relative to nominal 1489x2048 baseline
+        ref_geom = np.sqrt(2048.0 * 1489.0)
+        curr_geom = np.sqrt(float(img_h * img_w))
+        scale = curr_geom / ref_geom
+
+        # Scale spatial parameters dynamically
+        ksize = max(3, int(round(self.config.preprocessing.gaussian_kernel * scale))) | 1
+        cluster_area_thresh = max(60, int(round(self.config.separation.cluster_area_threshold_px * (scale ** 2))))
+        min_peak_dist = max(3, int(round(self.config.separation.min_peak_distance_px * scale)))
+        min_obj_area = max(8, int(round(self.config.segmentation.min_object_area_px * (scale ** 2))))
+        min_valid_area = max(8, int(round(self.config.measurement.valid_grain_min_area_px * (scale ** 2))))
+
         # 3. Denoising & Filtering
         gray, smoothed = preprocess_image(
             cleaned_bgr,
-            gaussian_kernel=self.config.preprocessing.gaussian_kernel,
+            gaussian_kernel=ksize,
             gaussian_sigma=self.config.preprocessing.gaussian_sigma
         )
 
@@ -88,18 +100,18 @@ class RiceQualityPipeline:
         clean_mask = cleanup_mask(
             binary_raw,
             kernel_size=self.config.segmentation.morph_kernel_size,
-            min_area_px=self.config.segmentation.min_object_area_px,
+            min_area_px=min_obj_area,
             fill_holes=self.config.segmentation.fill_holes
         )
 
         # 6. Separation via Selective Marker-Controlled Watershed
         instance_mask, grain_diagnostics, separation_stats = separate_touching_grains(
             clean_mask,
-            min_peak_distance_px=self.config.separation.min_peak_distance_px,
+            min_peak_distance_px=min_peak_dist,
             peak_threshold_rel=self.config.separation.peak_threshold_rel,
-            cluster_area_thresh_px=self.config.separation.cluster_area_threshold_px,
+            cluster_area_thresh_px=cluster_area_thresh,
             solidity_thresh=self.config.separation.solidity_threshold,
-            min_valid_area_px=self.config.measurement.valid_grain_min_area_px
+            min_valid_area_px=min_valid_area
         )
 
         # 7. Morphology and Color Feature Extraction
@@ -109,7 +121,7 @@ class RiceQualityPipeline:
             grain_diagnostics=grain_diagnostics,
             cleared_margins=cleared_margins,
             calibration=calib,
-            min_area_px=self.config.measurement.valid_grain_min_area_px
+            min_area_px=min_valid_area
         )
 
         # 8. Standard Rule-Based Quality Categorization
