@@ -88,17 +88,34 @@ def polygon_for_instance(
     instance_mask: np.ndarray,
     grain_id: int,
     *,
+    bbox: dict[str, Any] | None = None,
     minimum_mask_area_px: int = 20,
     epsilon_px: float = 0.8,
 ) -> dict[str, Any] | None:
-    """Return a normalized full-image YOLO polygon for one instance ID."""
+    """Return a normalized full-image YOLO polygon for one instance ID.
+
+    When a measured bounding box is supplied, work only inside that ROI rather
+    than comparing every pixel in a high-resolution scan for every grain.
+    """
     if instance_mask.ndim != 2:
         raise ValueError("instance_mask must be a 2D integer label map")
     height, width = instance_mask.shape[:2]
     if width < 2 or height < 2:
         return None
 
-    binary = (instance_mask == int(grain_id)).astype(np.uint8)
+    x_offset = 0
+    y_offset = 0
+    region = instance_mask
+    if bbox and all(key in bbox and bbox[key] is not None for key in ("x", "y", "width", "height")):
+        x_offset = max(0, int(bbox["x"]))
+        y_offset = max(0, int(bbox["y"]))
+        x_end = min(width, int(bbox["x"]) + int(bbox["width"]))
+        y_end = min(height, int(bbox["y"]) + int(bbox["height"]))
+        if x_end <= x_offset or y_end <= y_offset:
+            return None
+        region = instance_mask[y_offset:y_end, x_offset:x_end]
+
+    binary = (region == int(grain_id)).astype(np.uint8)
     pixel_area = int(cv2.countNonZero(binary))
     if pixel_area < minimum_mask_area_px:
         return None
@@ -117,8 +134,10 @@ def polygon_for_instance(
 
     normalized: list[tuple[float, float]] = []
     for x, y in polygon:
-        nx = min(1.0, max(0.0, float(x) / float(width - 1)))
-        ny = min(1.0, max(0.0, float(y) / float(height - 1)))
+        full_x = float(x) + x_offset
+        full_y = float(y) + y_offset
+        nx = min(1.0, max(0.0, full_x / float(width - 1)))
+        ny = min(1.0, max(0.0, full_y / float(height - 1)))
         normalized.append((nx, ny))
 
     coordinates = " ".join(f"{x:.6f} {y:.6f}" for x, y in normalized)
@@ -159,6 +178,11 @@ def build_yolo_annotations(
         status = str(row.get("separation_status", "") or "").strip().lower()
         is_boundary = _as_bool(row.get("is_boundary", False))
         quality_class = str(row.get("quality_class", "") or "")
+        bbox = {
+            key: row.get(key)
+            for key in ("x", "y", "width", "height")
+            if key in row
+        }
         reason: str | None = None
 
         if is_boundary:
@@ -173,6 +197,7 @@ def build_yolo_annotations(
             polygon = polygon_for_instance(
                 instance_mask,
                 grain_id,
+                bbox=bbox if len(bbox) == 4 else None,
                 minimum_mask_area_px=minimum_mask_area_px,
                 epsilon_px=epsilon_px,
             )
@@ -182,12 +207,6 @@ def build_yolo_annotations(
         included = polygon is not None and reason is None
         if included:
             label_lines.append(polygon["line"])
-
-        bbox = {
-            key: row.get(key)
-            for key in ("x", "y", "width", "height")
-            if key in row
-        }
         audit.append({
             "grain_id": grain_id,
             "quality_class_m0": quality_class,
@@ -225,16 +244,29 @@ def remap_instance_ids(instance_mask: np.ndarray) -> tuple[np.ndarray, dict[str,
 
 
 def save_instance_map(instance_mask: np.ndarray, output_dir: Path, image_id: str) -> tuple[Path, dict[str, int]]:
-    """Save a lossless, compact instance-ID map as uint16 PNG or uint32 NPY."""
-    remapped, id_map = remap_instance_ids(instance_mask)
-    if len(id_map) <= np.iinfo(np.uint16).max:
+    """Save the original instance IDs without allocating a giant remap index array.
+
+    M0 IDs normally fit in uint16. If they do, retain them directly as a PNG.
+    Extremely large ID maps are saved as NPY in their original ID space.
+    """
+    if instance_mask.ndim != 2 or not np.issubdtype(instance_mask.dtype, np.integer):
+        raise ValueError("instance_mask must be a 2D integer label map")
+    minimum_id = int(instance_mask.min())
+    maximum_id = int(instance_mask.max())
+    if minimum_id < 0:
+        raise ValueError("instance_mask IDs must be non-negative")
+
+    if maximum_id <= np.iinfo(np.uint16).max:
         output_path = output_dir / f"{image_id}.png"
-        ok = cv2.imwrite(str(output_path), remapped.astype(np.uint16))
+        ok = cv2.imwrite(str(output_path), instance_mask.astype(np.uint16, copy=False))
         if not ok:
             raise OSError(f"Could not write instance map: {output_path}")
+        # Identity mapping makes saved IDs directly comparable with M0 grain IDs.
+        id_map = {str(value): value for value in range(1, maximum_id + 1)}
     else:
         output_path = output_dir / f"{image_id}.npy"
-        np.save(output_path, remapped.astype(np.uint32))
+        np.save(output_path, instance_mask.astype(np.uint32, copy=False))
+        id_map = {}
     return output_path, id_map
 
 
@@ -408,6 +440,7 @@ def process_images(args: argparse.Namespace) -> int:
                 "candidate_instances": included_count,
                 "excluded_instances": len(audit) - included_count,
                 "instance_mask_id_map": id_map,
+                "instance_mask_ids_preserved": True,
                 "instances": audit,
             }
             metadata_output.write_text(
