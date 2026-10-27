@@ -55,7 +55,7 @@
       <section class="viewer">
         <div class="section-head"><div><div class="section-title">Scan image & grain overlays</div><div class="section-meta" id="scanMeta">Select a saved scan to begin</div></div><span class="pill" id="visibleCount">0 grains</span></div>
         <div class="image-stage" id="imageStage">
-          <div class="empty"><strong>No scan selected</strong>Run the M0 pipeline to create a scan record, then refresh this page.</div>
+          <div class="empty"><strong>No scan selected</strong>Run <code>python main.py --image data/samples/sample_1489x2048.jpg</code> first, then refresh.</div>
         </div>
         <div class="legend"><span><i class="dot" style="background:#79d29b"></i>Whole rice</span><span><i class="dot" style="background:#e8b85d"></i>Broken rice</span><span><i class="dot" style="background:#f17a70"></i>Needs review</span><span>Click a box to inspect one grain</span></div>
       </section>
@@ -147,7 +147,7 @@ async function loadScan(scanId){
   }catch(e){setStatus(e.message,true);}
 }
 function renderEmpty(){
-  $("imageStage").innerHTML='<div class="empty"><strong>No scan selected</strong>Run <code>python -m src.pipeline</code> via your configured entrypoint, then refresh. The review server reads scans cached by a pipeline run.</div>';
+  $("imageStage").innerHTML='<div class="empty"><strong>No scan selected</strong>Run <code>python main.py --image data/samples/sample_1489x2048.jpg</code> first, then refresh. The review server reads scans cached by a pipeline run.</div>';
   $("detailBody").innerHTML='<div class="empty" style="padding:30px 8px"><strong>Select a grain</strong>Click a bounding box or grain in the list.</div>';
   $("grainItems").innerHTML='<div class="empty">No saved grain records.</div>';
   $("scanMeta").textContent="Select a saved scan to begin";$("visibleCount").textContent="0 grains";$("listCount").textContent="0";$("grainCount").textContent="0";
