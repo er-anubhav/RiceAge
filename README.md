@@ -214,3 +214,29 @@ In compliance with first principles, defect classification will NOT use invented
 - `UNRIPE_RICE`
 - `FOREIGN_MATERIAL`
 - `OTHER_GRAIN`
+
+
+---
+
+## 9. Optional Human-in-the-Loop Review Dashboard (M0)
+
+Every normal pipeline run now attempts to cache its per-grain labels, bounding boxes, measurements, and feature values in SQLite at `outputs/feedback.db`. This is an additive feature; the existing CLI return values and output pipeline remain available. Configure `PipelineConfig(export=ExportConfig(persist_feedback=False))` to disable caching, or set `feedback_db_path` to use a different database path.
+
+Install dependencies and run a scan first:
+
+```bash
+pip install -r requirements.txt
+python main.py --image data/samples/sample_1489x2048.jpg
+```
+
+Then start the optional local review server in a separate terminal:
+
+```bash
+python -m src.review_app
+```
+
+Open **http://127.0.0.1:5000/review**. The dashboard lists saved scans, displays the scan image with clickable grain bounding boxes, shows available morphology measurements, and records inspector corrections in the audit table.
+
+**M0 limitations:** The current classifier is rule-based and labels whole rice, broken rice, boundary-truncated grains, and unresolved clusters. It does not output the planned five probabilistic defect heads. The UI therefore does not fabricate confidence values; threshold adaptation and candidate-model retraining remain disabled until the actual defect model, verified labels, trainer, and validation benchmark exist.
+
+**Security:** The optional dashboard has no authentication and binds to `127.0.0.1` by default. Keep it local; do not expose it to a network without adding authentication and deployment hardening.
