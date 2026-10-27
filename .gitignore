@@ -45,3 +45,7 @@ htmlcov/
 outputs/feedback.db
 outputs/feedback.db-shm
 outputs/feedback.db-wal
+
+# Generated, review-only segmentation pseudo-label dataset (do not commit raw image copies)
+data/processed/segmentation_candidates/
+data/processed/segmentation_candidates_pilot/
