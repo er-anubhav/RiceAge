@@ -2,12 +2,15 @@
 
 import os
 import datetime
+import logging
+import uuid
 from typing import Dict, Any, Optional
 import numpy as np
 import pandas as pd
 import cv2
 
 from configs.default_config import PipelineConfig
+from src.feedback_store import FeedbackStore
 from src.preprocessing import resolve_calibration, clear_scanner_bezel, preprocess_image
 from src.segmentation import segment_otsu, compare_segmentation_methods, cleanup_mask
 from src.separation import separate_touching_grains
@@ -122,6 +125,7 @@ class RiceQualityPipeline:
             raise FileNotFoundError(f"Input image not found: {image_path}")
 
         timestamp = datetime.datetime.now().isoformat()
+        scan_id = uuid.uuid4().hex
         original_bgr = cv2.imread(image_path)
         if original_bgr is None:
             raise ValueError(f"Failed to load image via OpenCV: {image_path}")
@@ -192,12 +196,73 @@ class RiceQualityPipeline:
         )
         classified_records = df_classified.to_dict(orient="records")
 
+        # Persist scan-level grain records for the audit workflow. The current M0
+        # classifier supplies rule-based labels only; no fake probabilities or
+        # defect-head confidence scores are invented here.
+        feedback_persisted = False
+        if self.config.export.persist_feedback:
+            try:
+                feedback_db = self.config.export.feedback_db_path or os.path.join(
+                    self.config.export.output_dir, "feedback.db"
+                )
+                grains_for_review = []
+                for row in classified_records:
+                    grain_number = int(row["grain_id"])
+                    bbox = [
+                        int(row["x"]), int(row["y"]),
+                        int(row["width"]), int(row["height"])
+                    ]
+                    features = {
+                        key: value for key, value in row.items()
+                        if key not in {"grain_id", "quality_class", "classification_reason"}
+                    }
+                    grains_for_review.append({
+                        "id": f"grain_{grain_number:04d}",
+                        "predicted_label": str(row["quality_class"]),
+                        "bbox": bbox,
+                        "center": [row.get("centroid_x"), row.get("centroid_y")],
+                        "probabilities": {},
+                        "measurements": {
+                            key: row.get(key) for key in (
+                                "length_px", "width_px", "length_mm", "width_mm",
+                                "area_px", "area_mm2", "aspect_ratio", "circularity",
+                                "solidity", "orientation_deg", "mean_r", "mean_g",
+                                "mean_b", "mean_intensity", "highlight_ratio"
+                            ) if key in row
+                        },
+                        "features": features,
+                        "review_flags": [
+                            flag for flag, condition in (
+                                ("boundary_truncated", bool(row.get("is_boundary", False))),
+                                ("unresolved_cluster", row.get("separation_status") == "under_segmented_cluster"),
+                            ) if condition
+                        ],
+                    })
+                store = FeedbackStore(feedback_db)
+                store.cache_scan_grains(
+                    scan_id=scan_id,
+                    grains=grains_for_review,
+                    image_path=os.path.abspath(image_path),
+                )
+                feedback_persisted = True
+            except Exception as exc:
+                # Feedback persistence is additive: a locked/unavailable database
+                # must never bring down the existing inspection/CLI pipeline.
+                logging.getLogger(__name__).warning(
+                    "Could not persist scan feedback context for %s: %s", scan_id, exc
+                )
+
         quality_counts = df_classified["quality_class"].value_counts().to_dict() if not df_classified.empty else {}
         status_counts = df_classified["separation_status"].value_counts().to_dict() if not df_classified.empty else {}
         morph_stats = self._calculate_morphology_statistics(df_classified, calib)
 
         summary = {
             "timestamp": timestamp,
+            "scan_id": scan_id,
+            "feedback": {
+                "persisted": feedback_persisted,
+                "storage": "sqlite" if feedback_persisted else "unavailable_or_disabled",
+            },
             "image_path": image_path,
             "image_dimensions": {"width": img_w, "height": img_h},
             "total_grains_detected": len(df_classified),
@@ -240,6 +305,8 @@ class RiceQualityPipeline:
 
         return {
             "summary": summary,
+            "scan_id": scan_id,
+            "grains_data": grains_for_review if feedback_persisted else [],
             "measurements_df": df_classified,
             "instance_mask": instance_mask,
             "clean_mask": clean_mask,
