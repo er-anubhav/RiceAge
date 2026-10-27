@@ -129,6 +129,19 @@ async function loadScan(scanId){
     currentImage=$("scanImage");
     currentImage.onload=()=>{resizeOverlay();renderGrains();setStatus("Scan loaded. Select any bounding box or grain to review.");};
     currentImage.onerror=()=>{ $("imageStage").innerHTML='<div class="empty"><strong>Source image unavailable</strong>The scan record exists, but its original image cannot be opened on this machine.</div>';renderGrains();setStatus("Could not load original scan image.",true);};
+    $("overlay").addEventListener("click", event => {
+      const canvas=$("overlay"), image=$("scanImage");
+      if(!image || !image.naturalWidth || !canvas) return;
+      const rect=canvas.getBoundingClientRect();
+      const x=(event.clientX-rect.left)*image.naturalWidth/rect.width;
+      const y=(event.clientY-rect.top)*image.naturalHeight/rect.height;
+      const hit=filteredGrains().slice().reverse().find(g=>{
+        if(!g.bbox || g.bbox.length!==4) return false;
+        const [gx,gy,gw,gh]=g.bbox;
+        return x>=gx && x<=gx+gw && y>=gy && y<=gy+gh;
+      });
+      if(hit) selectGrain(hit.grain_id);
+    });
     currentImage.src=data.image_url;
     renderGrains();
   }catch(e){setStatus(e.message,true);}
