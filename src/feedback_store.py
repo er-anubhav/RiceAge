@@ -7,6 +7,7 @@ records are available; never accept features from the browser.
 from __future__ import annotations
 
 import json
+import math
 import sqlite3
 import time
 from pathlib import Path
@@ -80,8 +81,38 @@ class FeedbackStore:
             """)
 
     @staticmethod
+    def _sanitize_json(value: Any) -> Any:
+        """Convert NumPy/Pandas scalars and non-finite floats to JSON-safe values."""
+        if value is None:
+            return None
+        if isinstance(value, dict):
+            return {str(key): FeedbackStore._sanitize_json(item) for key, item in value.items()}
+        if isinstance(value, (list, tuple)):
+            return [FeedbackStore._sanitize_json(item) for item in value]
+        # NumPy arrays expose tolist(); NumPy scalar values expose item().
+        if hasattr(value, "tolist") and not isinstance(value, (str, bytes)):
+            try:
+                return FeedbackStore._sanitize_json(value.tolist())
+            except (TypeError, ValueError):
+                pass
+        if hasattr(value, "item") and not isinstance(value, (str, bytes)):
+            try:
+                return FeedbackStore._sanitize_json(value.item())
+            except (TypeError, ValueError):
+                pass
+        if isinstance(value, float) and not math.isfinite(value):
+            return None
+        if isinstance(value, (str, int, float, bool)):
+            return value
+        raise TypeError(f"Unsupported value for feedback JSON: {type(value).__name__}")
+
+    @staticmethod
     def _json(value: Any) -> str:
-        return json.dumps(value if value is not None else {}, separators=(",", ":"), allow_nan=False)
+        return json.dumps(
+            FeedbackStore._sanitize_json(value),
+            separators=(",", ":"),
+            allow_nan=False,
+        )
 
     def cache_scan_grains(
         self,
