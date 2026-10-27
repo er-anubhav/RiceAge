@@ -224,25 +224,6 @@ def build_yolo_annotations(
     return label_lines, audit
 
 
-def remap_instance_ids(instance_mask: np.ndarray) -> tuple[np.ndarray, dict[str, int]]:
-    """Create a compact unsigned instance map and mapping from saved ID to M0 ID."""
-    if instance_mask.ndim != 2:
-        raise ValueError("instance_mask must be a 2D integer label map")
-    unique_values, inverse = np.unique(instance_mask, return_inverse=True)
-    lookup = np.zeros(len(unique_values), dtype=np.uint32)
-    exported_to_original: dict[str, int] = {}
-    next_id = 1
-    for index, value in enumerate(unique_values):
-        original_id = int(value)
-        if original_id <= 0:
-            continue
-        lookup[index] = next_id
-        exported_to_original[str(next_id)] = original_id
-        next_id += 1
-    remapped = lookup[inverse].reshape(instance_mask.shape)
-    return remapped, exported_to_original
-
-
 def save_instance_map(instance_mask: np.ndarray, output_dir: Path, image_id: str) -> tuple[Path, dict[str, int]]:
     """Save the original instance IDs without allocating a giant remap index array.
 
@@ -385,7 +366,7 @@ def process_images(args: argparse.Namespace) -> int:
                 raise ValueError("OpenCV could not decode the image")
             result = pipeline.run(
                 str(source_image),
-                raw_reference_path=str(args.raw_reference) if args.raw_reference else None,
+                raw_reference_path=str(Path(args.raw_reference).expanduser().resolve()) if args.raw_reference else None,
                 generate_outputs=False,
             )
             instance_mask = np.asarray(result["instance_mask"])
