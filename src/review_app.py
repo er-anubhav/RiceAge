@@ -119,7 +119,9 @@ def create_app(db_path: str | Path | None = None) -> Flask:
 
     @app.post("/api/feedback/correct")
     def correct_grain():
-        payload: dict[str, Any] = request.get_json(silent=True) or {}
+        payload = request.get_json(silent=True)
+        if not isinstance(payload, dict):
+            return jsonify({"error": "Request body must be a JSON object."}), 400
         scan_id = str(payload.get("scan_id", "")).strip()
         grain_id = str(payload.get("grain_id", "")).strip()
         corrected_label = str(payload.get("corrected_label", "")).strip()
