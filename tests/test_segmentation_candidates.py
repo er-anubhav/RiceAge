@@ -3,6 +3,7 @@ import csv
 import json
 from pathlib import Path
 
+import cv2
 import numpy as np
 
 from scripts.build_segmentation_candidates import (
@@ -10,7 +11,7 @@ from scripts.build_segmentation_candidates import (
     build_yolo_annotations,
     make_image_id,
     polygon_for_instance,
-    remap_instance_ids,
+    save_instance_map,
 )
 
 
@@ -72,17 +73,17 @@ def test_polygon_is_rejected_for_missing_or_tiny_instance():
     assert polygon_for_instance(mask, 99) is None
 
 
-def test_instance_map_remap_is_compact_and_lossless():
+def test_instance_map_preserves_original_ids_in_lossless_png(tmp_path):
     mask = np.array([[0, 17, 17], [0, 200, 0]], dtype=np.int32)
 
-    remapped, id_map = remap_instance_ids(mask)
+    path, id_map = save_instance_map(mask, tmp_path, "scan")
+    saved = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
 
-    assert set(id_map.values()) == {17, 200}
-    assert remapped[0, 0] == 0
-    assert remapped[0, 1] == remapped[0, 2]
-    assert remapped[0, 1] != remapped[1, 1]
-    assert id_map[str(int(remapped[0, 1]))] == 17
-    assert id_map[str(int(remapped[1, 1]))] == 200
+    assert path.suffix == ".png"
+    assert saved is not None
+    assert np.array_equal(saved, mask.astype(np.uint16))
+    assert id_map["17"] == 17
+    assert id_map["200"] == 200
 
 
 def test_image_id_is_stable_and_path_sensitive():
