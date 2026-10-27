@@ -39,3 +39,9 @@ htmlcov/
 
 # Large raw scans can be kept or tracked with Git LFS if needed
 # data/raw/*.jpg
+
+
+# Runtime feedback database and SQLite sidecars
+outputs/feedback.db
+outputs/feedback.db-shm
+outputs/feedback.db-wal
