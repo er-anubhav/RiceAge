@@ -240,3 +240,17 @@ Open **http://127.0.0.1:5000/review**. The dashboard lists saved scans, displays
 **M0 limitations:** The current classifier is rule-based and labels whole rice, broken rice, boundary-truncated grains, and unresolved clusters. It does not output the planned five probabilistic defect heads. The UI therefore does not fabricate confidence values; threshold adaptation and candidate-model retraining remain disabled until the actual defect model, verified labels, trainer, and validation benchmark exist.
 
 **Security:** The optional dashboard has no authentication and binds to `127.0.0.1` by default. Keep it local; do not expose it to a network without adding authentication and deployment hardening.
+
+
+## 10. Segmentation Dataset Post-Processing (Candidate Labels)
+
+The M0 pipeline can emit a full-image instance-ID map in memory. Build reviewable, full-image YOLO segmentation candidate labels with:
+
+    python scripts/build_segmentation_candidates.py \
+      --input data/samples/sample_1489x2048.jpg \
+      --output data/processed/segmentation_candidates_pilot \
+      --max-images 1
+
+Inspect overlays/, metadata/, and manifest.csv. Green outlines are candidate instances; red outlines are excluded or suspect instances. Once the pilot looks good, pass --input data/samples to process a directory. Refer to docs/SEGMENTATION_DATASET_POSTPROCESSING.md for full instructions.
+
+Important: these are M0-generated pseudo-labels, not verified ground truth. The export deliberately omits unresolved clusters, boundary-truncated grains, and other untrusted statuses from the candidate YOLO labels, while preserving them in review artifacts. Do not train from this output until an annotator has reviewed/corrected the masks and a scan-level split has been created. The script does not train any model and does not generate a data.yaml.
