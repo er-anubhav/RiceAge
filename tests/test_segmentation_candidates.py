@@ -1,6 +1,12 @@
+import argparse
+import csv
+import json
+from pathlib import Path
+
 import numpy as np
 
 from scripts.build_segmentation_candidates import (
+    process_images,
     build_yolo_annotations,
     make_image_id,
     polygon_for_instance,
@@ -86,3 +92,44 @@ def test_image_id_is_stable_and_path_sensitive():
 
     assert first == second
     assert first != third
+
+
+def test_process_images_exports_reviewable_pseudo_labels(tmp_path):
+    repo_root = Path(__file__).resolve().parents[1]
+    source_image = repo_root / "data" / "samples" / "sample_1489x2048.jpg"
+    assert source_image.exists(), "The repository sample image is required for this integration test"
+
+    output_root = tmp_path / "segmentation_candidates"
+    args = argparse.Namespace(
+        input=str(source_image),
+        output=str(output_root),
+        raw_reference=None,
+        non_recursive=False,
+        max_images=1,
+        min_mask_area_px=20,
+        polygon_epsilon_px=0.8,
+    )
+
+    assert process_images(args) == 0
+
+    with (output_root / "manifest.csv").open(newline="", encoding="utf-8") as handle:
+        rows = list(csv.DictReader(handle))
+    assert len(rows) == 1
+    row = rows[0]
+    assert row["label_source"] == "m0_pseudolabel"
+    assert row["review_status"] == "unreviewed"
+    assert row["training_ready"] == "False"
+
+    label_path = output_root / row["label_file"]
+    label_lines = [line for line in label_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    assert len(label_lines) == int(row["candidate_instances"])
+    assert label_lines
+    assert (output_root / row["output_image"]).exists()
+    assert (output_root / row["overlay"]).exists()
+    assert (output_root / row["instance_mask"]).exists()
+
+    metadata_path = output_root / "metadata" / f"{row['image_id']}.json"
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    assert metadata["training_ready"] is False
+    assert metadata["review_status"] == "unreviewed"
+    assert metadata["class_names"] == {"0": "rice_grain"}
