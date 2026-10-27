@@ -82,6 +82,10 @@ class ExportConfig:
     crops_dir: str = "outputs/crops"
     masks_dir: str = "outputs/masks"
     reports_dir: str = "outputs/reports"
+    # Persist per-grain server-side feedback context for the review workflow.
+    # This is additive and can be disabled to preserve a no-database run.
+    persist_feedback: bool = True
+    feedback_db_path: Optional[str] = None
 
 
 @dataclass
