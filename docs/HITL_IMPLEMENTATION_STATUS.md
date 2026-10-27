@@ -32,6 +32,9 @@ The M0 pipeline is now connected to SQLite scan caching, but the full `/review` 
 Run:
 
 ```bash
-python -m pytest tests/test_feedback_loop_foundation.py tests/test_pipeline_feedback_integration.py -v
+python -m pytest tests/test_feedback_loop_foundation.py tests/test_pipeline_feedback_integration.py tests/test_review_app.py -v
 python -m pytest -v
+
+# Launch the optional local review server after running a pipeline scan
+python -m src.review_app
 ```
