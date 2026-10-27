@@ -243,23 +243,40 @@ def render_review_overlay(
     instance_mask: np.ndarray,
     audit: list[dict[str, Any]],
 ) -> np.ndarray:
-    """Draw green outlines for candidate instances and red outlines for excluded ones."""
+    """Draw green outlines for candidate instances and red outlines for excluded ones.
+
+    Restrict contour extraction to each measured bounding box. Searching the full
+    high-resolution scan once per grain is unnecessarily expensive.
+    """
     overlay = image_bgr.copy()
-    included_ids = {
-        int(item["grain_id"])
-        for item in audit
-        if item.get("grain_id") is not None and item.get("included_in_candidate_labels")
-    }
-    ids = np.unique(instance_mask)
-    for value in ids:
-        grain_id = int(value)
-        if grain_id <= 0:
+    image_height, image_width = instance_mask.shape[:2]
+    for item in audit:
+        if item.get("grain_id") is None:
             continue
-        binary = (instance_mask == grain_id).astype(np.uint8)
-        contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        color = (0, 220, 0) if grain_id in included_ids else (0, 0, 230)
+        bbox = item.get("bbox") or {}
+        try:
+            x = int(bbox["x"])
+            y = int(bbox["y"])
+            width = int(bbox["width"])
+            height = int(bbox["height"])
+            grain_id = int(item["grain_id"])
+        except (KeyError, TypeError, ValueError):
+            continue
+
+        x1 = max(0, x)
+        y1 = max(0, y)
+        x2 = min(image_width, x + width)
+        y2 = min(image_height, y + height)
+        if x2 <= x1 or y2 <= y1:
+            continue
+
+        region = (instance_mask[y1:y2, x1:x2] == grain_id).astype(np.uint8)
+        contours, _ = cv2.findContours(region, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        color = (0, 220, 0) if item.get("included_in_candidate_labels") else (0, 0, 230)
         if contours:
-            cv2.drawContours(overlay, contours, -1, color, 1, cv2.LINE_AA)
+            cv2.drawContours(
+                overlay, contours, -1, color, 1, cv2.LINE_AA, offset=(x1, y1)
+            )
     return overlay
 
 
