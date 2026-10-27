@@ -18,7 +18,7 @@ def test_polygon_for_instance_returns_normalized_yolo_polygon():
     mask = np.zeros((80, 120), dtype=np.int32)
     mask[12:30, 15:55] = 7
 
-    polygon = polygon_for_instance(mask, 7)
+    polygon = polygon_for_instance(mask, 7, bbox={"x": 15, "y": 12, "width": 40, "height": 18})
 
     assert polygon is not None
     assert polygon["line"].startswith("0 ")
