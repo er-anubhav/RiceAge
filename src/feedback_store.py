@@ -170,6 +170,18 @@ class FeedbackStore:
             """, (max(1, min(int(limit), 500)),)).fetchall()
         return [dict(row) for row in rows]
 
+    def get_scan_image_path(self, scan_id: str) -> str | None:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT image_path FROM scan_grains WHERE scan_id = ? LIMIT 1",
+                (scan_id,),
+            ).fetchone()
+        return str(row["image_path"]) if row and row["image_path"] else None
+
+    def get_total_corrections(self) -> int:
+        with self._connect() as conn:
+            return int(conn.execute("SELECT COUNT(*) FROM feedback_audit").fetchone()[0])
+
     def get_scan_grains(self, scan_id: str) -> list[dict[str, Any]]:
         with self._connect() as conn:
             rows = conn.execute("""
