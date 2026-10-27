@@ -216,6 +216,12 @@ class RiceQualityPipeline:
                         key: value for key, value in row.items()
                         if key not in {"grain_id", "quality_class", "classification_reason"}
                     }
+                    review_flags = [
+                        flag for flag, condition in (
+                            ("boundary_truncated", bool(row.get("is_boundary", False))),
+                            ("unresolved_cluster", row.get("separation_status") == "under_segmented_cluster"),
+                        ) if condition
+                    ]
                     grains_for_review.append({
                         "id": f"grain_{grain_number:04d}",
                         "predicted_label": str(row["quality_class"]),
@@ -231,13 +237,12 @@ class RiceQualityPipeline:
                             ) if key in row
                         },
                         "features": features,
-                        "review_flags": [
-                            flag for flag, condition in (
-                                ("boundary_truncated", bool(row.get("is_boundary", False))),
-                                ("unresolved_cluster", row.get("separation_status") == "under_segmented_cluster"),
-                            ) if condition
-                        ],
+                        "review_flags": review_flags,
                     })
+                    grains_for_review[-1]["measurements"]["center"] = [
+                        row.get("centroid_x"), row.get("centroid_y")
+                    ]
+                    grains_for_review[-1]["measurements"]["review_flags"] = review_flags
                 store = FeedbackStore(feedback_db)
                 store.cache_scan_grains(
                     scan_id=scan_id,
