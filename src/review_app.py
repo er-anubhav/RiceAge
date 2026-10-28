@@ -27,7 +27,9 @@ M0_LABELS = {
 
 def create_app(db_path: str | Path | None = None) -> Flask:
     repo_root = Path(__file__).resolve().parent.parent
-    template_dir = repo_root / "templates"
+    template_dir = Path(__file__).resolve().parent / "templates"
+    if not template_dir.exists():
+        template_dir = repo_root / "templates"
     configured_db = db_path or os.environ.get(
         "RICEAGE_FEEDBACK_DB", str(repo_root / "outputs" / "feedback.db")
     )

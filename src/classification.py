@@ -1,7 +1,7 @@
 # Grain quality taxonomy and rule-based morphological classifier.
 
 from enum import Enum
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import pandas as pd
 import numpy as np
 
@@ -29,7 +29,9 @@ class FutureDefectTaxonomy(str, Enum):
 def classify_grains_rule_based(
     measurements_df: pd.DataFrame,
     broken_length_ratio_thresh: float = 0.75,
-    broken_aspect_ratio_thresh: float = 1.6
+    broken_aspect_ratio_thresh: float = 1.6,
+    reference_whole_length_mm: Optional[float] = None,
+    pixel_scale_mm: Optional[float] = None
 ) -> pd.DataFrame:
     df = measurements_df.copy()
     if df.empty:
@@ -37,17 +39,20 @@ def classify_grains_rule_based(
         df["classification_reason"] = []
         return df
 
-    unbroken_candidates = df[
-        (df["separation_status"].isin(["isolated_single", "separated_from_cluster"])) &
-        (~df["is_boundary"]) &
-        (df["solidity"] >= 0.90) &
-        (df["aspect_ratio"] >= 1.8)
-    ]
-
-    if not unbroken_candidates.empty:
-        median_whole_length = float(unbroken_candidates["length_px"].median())
+    if reference_whole_length_mm is not None and pixel_scale_mm is not None and pixel_scale_mm > 0:
+        median_whole_length = float(reference_whole_length_mm / pixel_scale_mm)
     else:
-        median_whole_length = float(df["length_px"].median())
+        unbroken_candidates = df[
+            (df["separation_status"].isin(["isolated_single", "separated_from_cluster"])) &
+            (~df["is_boundary"]) &
+            (df["solidity"] >= 0.90) &
+            (df["aspect_ratio"] >= 1.8)
+        ]
+
+        if not unbroken_candidates.empty:
+            median_whole_length = float(unbroken_candidates["length_px"].median())
+        else:
+            median_whole_length = float(df["length_px"].median())
 
     quality_classes = []
     reasons = []

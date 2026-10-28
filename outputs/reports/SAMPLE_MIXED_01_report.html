@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RiceAge Quality Inspection Report — SAMPLE_MIXED_01</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card-bg: #1e293b;
+    --border: #334155;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --accent: #3b82f6;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text-main);
+    margin: 0;
+    padding: 24px;
+    line-height: 1.5;
+  }
+  .container {
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+  }
+  h1 { margin: 0; font-size: 24px; font-weight: 700; }
+  .meta { color: var(--text-muted); font-size: 14px; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    font-weight: 700;
+    font-size: 16px;
+    color: #fff;
+    background: #ef4444;
+  }
+  .metric-val {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 4px 0;
+  }
+  .metric-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    color: var(--text-muted);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .alert {
+    background: rgba(245, 158, 11, 0.1);
+    border-left: 4px solid #f59e0b;
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin-bottom: 24px;
+    font-size: 14px;
+  }
+  .alert-title { font-weight: 700; color: #f59e0b; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <div>
+    <h1>RiceAge Quality Inspection Certificate</h1>
+    <div class="meta">Sample ID: <strong>SAMPLE_MIXED_01</strong> | Inspection Date: 2026-10-12 12:55:48</div>
+  </div>
+  <div>
+    <span class="badge">Substandard / Below FAQ</span>
+  </div>
+</header>
+
+<div class="grid">
+  <div class="card">
+    <div class="meta">Total Rice Kernels</div>
+    <div class="metric-val">24</div>
+    <div class="metric-sub">Whole: 4 | Broken: 20</div>
+  </div>
+  <div class="card">
+    <div class="meta">Foreign Matter Objects</div>
+    <div class="metric-val">8</div>
+    <div class="metric-sub">25.0% of total detected objects</div>
+  </div>
+  <div class="card">
+    <div class="meta">Head Rice Ratio (Whole %)</div>
+    <div class="metric-val">16.67%</div>
+    <div class="metric-sub">Broken: 83.33%</div>
+  </div>
+  <div class="card">
+    <div class="meta">Overall Defect Rate</div>
+    <div class="metric-val">9</div>
+    <div class="metric-sub">0 grains with multi-defects</div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom: 24px;">
+  <h2>Quality Factor Distribution & Standards Compliance</h2>
+  <div class="meta">Evaluated under standard: <strong>Codex Standard for Rice (CXS 198-1995, Revised 2019)</strong></div>
+  <table>
+    <thead>
+      <tr>
+        <th>Quality Criterion</th>
+        <th>Measured Count</th>
+        <th>Measured %</th>
+        <th>Mathematical Denominator</th>
+        <th>Grade Limit</th>
+        <th>Compliance Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Whole Rice (Head Rice)</strong></td>
+        <td>4</td>
+        <td>16.67%</td>
+        <td>Total Rice Grains (24)</td>
+        <td>Baseline Standard</td>
+        <td>PASS</td>
+      </tr>
+      <tr>
+        <td><strong>Broken Rice</strong></td>
+        <td>20</td>
+        <td>83.33%</td>
+        <td>Total Rice Grains (24)</td>
+        <td>Max allowable for tier</td>
+        <td>PASS</td>
+      </tr>
+      <tr>
+        <td><strong>Chalky Kernels</strong></td>
+        <td>6</td>
+        <td>25.0%</td>
+        <td>Total Rice Grains (24)</td>
+        <td>Max allowable for tier</td>
+        <td>PASS</td>
+      </tr>
+      <tr>
+        <td><strong>Damaged Kernels</strong></td>
+        <td>1</td>
+        <td>4.17%</td>
+        <td>Total Rice Grains (24)</td>
+        <td>Max allowable for tier</td>
+        <td>PASS</td>
+      </tr>
+      <tr>
+        <td><strong>Discoloured Kernels</strong></td>
+        <td>2</td>
+        <td>8.33%</td>
+        <td>Total Rice Grains (24)</td>
+        <td>Max allowable for tier</td>
+        <td>PASS</td>
+      </tr>
+      <tr>
+        <td><strong>Foreign Matter</strong></td>
+        <td>8</td>
+        <td>25.0%</td>
+        <td>Total Objects (32)</td>
+        <td>Max allowable for tier</td>
+        <td>PASS</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="alert">
+  <div class="alert-title">Regulatory Certification & Laboratory Limitations Notice</div>
+  <div>This report provides an <strong>optical inspection assessment</strong> based on flatbed scan imagery. The following criteria required by Codex Standard for Rice (CXS 198-1995, Revised 2019) cannot be evaluated optically and require dedicated physical laboratory assays:</div>
+  <ul>
+    <li>moisture_content (Max 15% m/m - Requires oven/moisture meter)</li><li>odor (Must be free from abnormal flavors and odors)</li><li>live_insects (Free from live insects)</li>
+  </ul>
+  <div>This report does not replace certified laboratory grain certificates where legal trade compliance requires moisture or gravimetric weighing.</div>
+</div>
+
+</div>
+</body>
+</html>

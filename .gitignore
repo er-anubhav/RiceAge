@@ -49,3 +49,24 @@ outputs/feedback.db-wal
 # Generated, review-only segmentation pseudo-label dataset (do not commit raw image copies)
 data/processed/segmentation_candidates/
 data/processed/segmentation_candidates_pilot/
+
+# Data archives, datasets, and local feature caches
+data/*.zip
+data/dataset/
+data/cache_*.csv
+
+# Temporary test outputs and local evaluation runs
+outputs/*.png
+outputs/*.jpg
+outputs/evaluation/
+outputs/evaluation_*/
+outputs/crops/grain_07*
+outputs/masks/grain_07*
+
+# Production app runtime uploads and history
+final/static/uploads/*.jpg
+final/static/history.json
+
+# Allow built production web UI distribution
+!final/dist/
+!final/dist/**

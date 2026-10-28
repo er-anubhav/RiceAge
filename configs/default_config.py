@@ -41,6 +41,7 @@ class SegmentationConfig:
 class SeparationConfig:
     # Touching grain separation (watershed & distance transform) settings.
     enable_watershed: bool = True
+    enable_concave_fallback: bool = True
     # Area threshold above which a connected component is scrutinized as a cluster
     cluster_area_threshold_px: int = 650
     # Solidity (area / convex_hull_area) threshold below which component is considered touching
@@ -50,6 +51,9 @@ class SeparationConfig:
     peak_threshold_rel: float = 0.35
     # Maximum allowed clusters to split
     max_cluster_area_px: int = 15000
+    concave_max_cluster_area_factor: float = 2.5
+    concave_min_cluster_solidity: float = 0.72
+    concave_max_cluster_aspect_ratio: float = 3.8
 
 
 @dataclass
@@ -69,6 +73,10 @@ class ClassificationConfig:
     broken_length_ratio_thresh: float = 0.75
     # Aspect ratio threshold (length / width)
     broken_aspect_ratio_thresh: float = 1.6
+    # M4 Multi-head quality classification configuration
+    sample_id: Optional[str] = None
+    quality_weights_path: str = "configs/quality_classifier_weights.json"
+    require_full_criteria: bool = False
 
 
 @dataclass

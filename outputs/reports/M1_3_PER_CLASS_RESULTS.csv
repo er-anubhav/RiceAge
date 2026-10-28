@@ -1,0 +1,7 @@
+category,image_count,gt_count,pred_count_m13,pred_count_m12_hybrid,pred_count_m12_watershed,micro_tp_m13,micro_fp_m13,micro_fn_m13,micro_precision_m13,micro_recall_m13,micro_f1_m13,micro_precision_m12_hybrid,micro_recall_m12_hybrid,micro_f1_m12_hybrid,micro_precision_m12_watershed,micro_recall_m12_watershed,micro_f1_m12_watershed,macro_precision_m13,macro_recall_m13,macro_f1_m13,delta_fp_vs_hybrid,delta_fp_vs_watershed,mean_matched_iou
+broken,20,398,398,398,398,398,0,0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0.3048
+chalky,20,462,402,402,400,402,0,60,1.0,0.8701,0.9305,1.0,0.8701,0.9305,1.0,0.8658,0.9281,1.0,0.8728,0.9314,0,0,0.3815
+damaged,19,371,378,378,375,371,7,0,0.9815,1.0,0.9907,0.9815,1.0,0.9907,0.9813,0.9919,0.9866,0.9821,1.0,0.9908,0,0,0.5301
+foreign_matter,20,369,766,790,764,354,412,15,0.4621,0.9593,0.6237,0.4481,0.9593,0.6109,0.4634,0.9593,0.6249,0.4778,0.9646,0.632,-24,2,0.1778
+mixed,20,534,587,592,586,478,109,56,0.8143,0.8951,0.8528,0.8074,0.8951,0.849,0.8157,0.8951,0.8536,0.8405,0.8914,0.8592,-5,1,0.1878
+whole,20,395,395,395,395,395,0,0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0,0,0.2837

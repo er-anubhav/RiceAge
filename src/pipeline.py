@@ -26,6 +26,12 @@ from src.reporting import (
     export_summary_json,
     generate_experiment_report,
 )
+from src.quality_classification import MultiHeadQualityClassifier
+from src.quality_grading import (
+    compute_sample_quality_metrics,
+    evaluate_quality_grade,
+)
+from src.quality_reporting import export_sample_quality_report
 
 
 class RiceQualityPipeline:
@@ -33,6 +39,8 @@ class RiceQualityPipeline:
 
     def __init__(self, config: Optional[PipelineConfig] = None):
         self.config = config or PipelineConfig()
+        weights_path = getattr(self.config.classification, "quality_weights_path", "configs/quality_classifier_weights.json")
+        self.quality_classifier = MultiHeadQualityClassifier(weights_path=weights_path)
 
     def _scale_spatial_parameters(self, img_h: int, img_w: int) -> Dict[str, int]:
         ref_geom = np.sqrt(2048.0 * 1489.0)
@@ -175,7 +183,11 @@ class RiceQualityPipeline:
             peak_threshold_rel=self.config.separation.peak_threshold_rel,
             cluster_area_thresh_px=spatial_params["cluster_area_thresh"],
             solidity_thresh=self.config.separation.solidity_threshold,
-            min_valid_area_px=spatial_params["min_valid_area"]
+            min_valid_area_px=spatial_params["min_valid_area"],
+            enable_concave_fallback=getattr(self.config.separation, "enable_concave_fallback", True),
+            concave_max_cluster_area_factor=getattr(self.config.separation, "concave_max_cluster_area_factor", 2.5),
+            concave_min_cluster_solidity=getattr(self.config.separation, "concave_min_cluster_solidity", 0.72),
+            concave_max_cluster_aspect_ratio=getattr(self.config.separation, "concave_max_cluster_aspect_ratio", 3.8),
         )
 
         # measurement.measure_all_grains: compute morphology dimensions (length, width, area) and RGB/HSV color metrics
@@ -261,6 +273,17 @@ class RiceQualityPipeline:
         status_counts = df_classified["separation_status"].value_counts().to_dict() if not df_classified.empty else {}
         morph_stats = self._calculate_morphology_statistics(df_classified, calib)
 
+        # M4 Quality classification & grading
+        sample_id = getattr(self.config.classification, "sample_id", None) or os.path.splitext(os.path.basename(image_path))[0]
+        grain_classifications, _, _ = self.quality_classifier.classify_detected_objects(
+            original_bgr=original_bgr,
+            instance_mask=instance_mask,
+            image_name=os.path.basename(image_path)
+        )
+        quality_metrics = compute_sample_quality_metrics(grain_classifications, sample_id=sample_id)
+        require_full = getattr(self.config.classification, "require_full_criteria", False)
+        grading_decision = evaluate_quality_grade(quality_metrics, require_full_criteria=require_full)
+
         summary = {
             "timestamp": timestamp,
             "scan_id": scan_id,
@@ -296,8 +319,20 @@ class RiceQualityPipeline:
             "quality_counts": quality_counts,
             "status_counts": status_counts,
             "morphology_statistics": morph_stats,
+            "quality_classification": {
+                "is_model_loaded": self.quality_classifier.is_loaded,
+                "fallback_warning": self.quality_classifier.fallback_warning,
+                "total_classified": len(grain_classifications),
+            },
+            "quality_grading": {
+                "assigned_grade": grading_decision.assigned_grade,
+                "status": grading_decision.status,
+                "standard_name": grading_decision.standard_name,
+                "is_compliant": grading_decision.is_compliant,
+            },
         }
 
+        report_files = {}
         if generate_outputs:
             self._export_pipeline_artifacts(
                 original_bgr=original_bgr,
@@ -307,6 +342,16 @@ class RiceQualityPipeline:
                 df_classified=df_classified,
                 summary=summary
             )
+            reports_dir = self.config.export.reports_dir
+            os.makedirs(reports_dir, exist_ok=True)
+            report_files = export_sample_quality_report(
+                sample_id=sample_id,
+                metrics=quality_metrics,
+                grading=grading_decision,
+                grains=grain_classifications,
+                output_dir=reports_dir,
+                image_path=image_path
+            )
 
         return {
             "summary": summary,
@@ -315,5 +360,9 @@ class RiceQualityPipeline:
             "measurements_df": df_classified,
             "instance_mask": instance_mask,
             "clean_mask": clean_mask,
+            "quality_metrics": quality_metrics,
+            "grading_decision": grading_decision,
+            "grain_classifications": grain_classifications,
+            "report_files": report_files,
         }
 

@@ -7,9 +7,20 @@ from skimage import filters
 from scipy import ndimage as ndi
 
 
-# Segment image using Otsu's optimal global thresholding.
-def segment_otsu(gray_image: np.ndarray) -> Tuple[np.ndarray, float]:
+# Segment image using Otsu's optimal global thresholding with trimodal collapse guardrail.
+def segment_otsu(gray_image: np.ndarray, max_fg_ratio: float = 0.20) -> Tuple[np.ndarray, float]:
     thresh_val, binary = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    fg_ratio = float(np.mean(binary > 0))
+    if fg_ratio > max_fg_ratio:
+        valid_pixels = gray_image[gray_image > 20]
+        if len(valid_pixels) > 1000:
+            alt_thresh, _ = cv2.threshold(valid_pixels, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+            bg_pix = valid_pixels[valid_pixels < 130]
+            noise_floor = float(np.percentile(bg_pix, 99.9)) if len(bg_pix) > 100 else 100.0
+            alt_thresh = max(alt_thresh, noise_floor, 100.0)
+            alt_binary = (gray_image > alt_thresh).astype(np.uint8) * 255
+            if float(np.mean(alt_binary > 0)) <= max_fg_ratio:
+                return alt_binary, float(alt_thresh)
     return binary, float(thresh_val)
 
 
