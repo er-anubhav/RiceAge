@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RiceAge · Quality Review</title>
+<style>
+:root{color-scheme:dark;--bg:#0c1010;--panel:#141a19;--panel2:#19211f;--line:#2a3431;--text:#f1f4ee;--muted:#9ba9a1;--accent:#d6ef8a;--accent-ink:#162012;--danger:#ff8f82;--gold:#edc779;--shadow:0 16px 50px #0004}
+:root[data-theme="light"]{color-scheme:light;--bg:#f3f5ef;--panel:#fff;--panel2:#f7f9f3;--line:#dce3d8;--text:#18221b;--muted:#69766b;--accent:#355d32;--accent-ink:#fff;--danger:#b73d32;--gold:#8e641b;--shadow:0 12px 35px #2735220f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.005em}button,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.45}
+.topbar{height:74px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(16px,3vw,42px);border-bottom:1px solid var(--line);background:var(--panel)}.brand{display:flex;gap:13px;align-items:center}.brandmark{width:37px;height:37px;border-radius:12px;background:var(--accent);display:grid;place-items:center;color:var(--accent-ink);font-weight:900;font-size:18px}.brandname{font-size:16px;font-weight:760;letter-spacing:-.03em}.brandmeta{color:var(--muted);font-size:11px;margin-top:2px}.top-actions{display:flex;gap:8px;align-items:center}.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:9px 12px;border-radius:10px;font-weight:650}.btn:hover:not(:disabled){border-color:var(--accent)}.btn-primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}.page{max-width:1500px;margin:auto;padding:28px clamp(16px,3vw,42px) 50px}.eyebrow{text-transform:uppercase;color:var(--muted);letter-spacing:.13em;font-size:10px;font-weight:800}.intro{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:24px}.intro h1{font-size:clamp(25px,3vw,34px);line-height:1.15;letter-spacing:-.045em;margin:7px 0}.intro p{color:var(--muted);margin:7px 0 0;max-width:660px}.notice{padding:10px 12px;border:1px solid #8f733c55;background:#d8ac4720;color:var(--gold);border-radius:10px;font-size:12px;max-width:390px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:22px}.stat{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:16px}.stat .label{color:var(--muted);font-size:12px}.stat .value{font-size:24px;font-weight:760;letter-spacing:-.05em;margin-top:6px}.stat .hint{color:var(--muted);font-size:11px;margin-top:2px}
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;justify-content:space-between;padding:14px;background:var(--panel);border:1px solid var(--line);border-radius:15px 15px 0 0}.selectwrap{display:flex;align-items:center;gap:10px;min-width:min(100%,480px)}.selectwrap label{font-weight:700;color:var(--muted);font-size:12px;white-space:nowrap}select{background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:10px 12px;border-radius:10px;min-width:160px;max-width:520px;width:100%}.filters{display:flex;flex-wrap:wrap;gap:6px}.filter{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:7px 10px;font-size:11px;font-weight:750}.filter.active{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.workspace{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(305px,.8fr);gap:14px;background:var(--panel);border:1px solid var(--line);border-top:0;border-radius:0 0 15px 15px;padding:14px}.viewer,.details,.grainlist{border:1px solid var(--line);border-radius:13px;overflow:hidden;min-width:0}.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px;border-bottom:1px solid var(--line);background:var(--panel2)}.section-title{font-weight:750;font-size:13px}.section-meta{color:var(--muted);font-size:11px}.image-stage{min-height:260px;max-height:70vh;overflow:auto;background:repeating-linear-gradient(45deg,var(--panel2) 0,var(--panel2) 10px,var(--panel) 10px,var(--panel) 20px);display:flex;align-items:center;justify-content:center;padding:14px;position:relative}.image-wrap{position:relative;line-height:0;max-width:100%}.image-wrap img{display:block;max-width:100%;max-height:66vh;width:auto;height:auto;object-fit:contain;border-radius:4px}.image-wrap canvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair}.empty{padding:55px 20px;text-align:center;color:var(--muted)}.empty strong{display:block;color:var(--text);margin-bottom:6px}.legend{padding:10px 14px;display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--muted);border-top:1px solid var(--line)}.dot{width:7px;height:7px;display:inline-block;border-radius:3px;margin-right:5px}
+.rightcol{display:flex;flex-direction:column;gap:14px}.detail-body{padding:15px}.grain-title{display:flex;gap:10px;align-items:center;justify-content:space-between}.grain-id{font-size:18px;letter-spacing:-.03em;font-weight:780}.pill{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:5px 8px;font-size:10px;font-weight:800;color:var(--muted)}.class-name{margin:12px 0 4px;font-size:15px;font-weight:750}.subtext{color:var(--muted);font-size:12px}.measurements{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:15px 0}.measure{background:var(--panel2);border:1px solid var(--line);padding:10px;border-radius:10px}.measure span{display:block;color:var(--muted);font-size:10px}.measure b{display:block;margin-top:4px;font-size:14px;font-variant-numeric:tabular-nums}.detail-label{font-size:11px;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin:16px 0 8px}.corrections{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.label-btn{padding:9px 8px;border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:9px;font-size:11px;font-weight:720;text-align:left}.label-btn.selected{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}.label-btn span{display:block;color:var(--muted);font-weight:500;font-size:10px;margin-top:2px}.label-btn.selected span{color:var(--accent)}.save-row{display:flex;gap:8px;margin-top:12px}.save-row .btn{flex:1}.grain-items{padding:7px;max-height:330px;overflow:auto}.grain-item{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:10px;border:1px solid transparent;border-radius:9px;text-align:left;background:transparent;color:var(--text)}.grain-item:hover,.grain-item.selected{background:var(--panel2);border-color:var(--line)}.grain-item strong{font-size:11px;display:block}.grain-item small{color:var(--muted);font-size:10px;display:block;margin-top:3px}.grain-item .arrow{color:var(--muted)}.callout{margin-top:10px;border:1px solid var(--line);padding:10px;border-radius:10px;color:var(--muted);font-size:11px}.statusline{color:var(--muted);font-size:11px;min-height:18px;margin-top:10px}.footer{text-align:center;color:var(--muted);font-size:11px;margin-top:20px}
+@media(max-width:1000px){.workspace{grid-template-columns:1fr}.rightcol{display:grid;grid-template-columns:1fr 1fr}.stats{grid-template-columns:repeat(2,1fr)}.notice{display:none}}
+@media(max-width:640px){.topbar{height:auto;padding:14px 16px}.top-actions .btn .long{display:none}.intro{display:block}.notice{display:block;margin-top:14px;max-width:none}.toolbar{align-items:stretch}.selectwrap{min-width:0;flex-direction:column;align-items:stretch}.workspace{padding:8px}.rightcol{display:flex}.image-stage{min-height:190px;padding:7px}.stats{gap:8px}.stat{padding:12px}.stat .value{font-size:21px}.page{padding-top:20px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="brandmark">R</div>
+    <div><div class="brandname">RiceAge <span style="color:var(--muted);font-weight:500">/ Quality Review</span></div><div class="brandmeta">M0 · Classical computer vision audit</div></div>
+  </div>
+  <div class="top-actions">
+    <button class="btn" id="themeBtn" type="button" title="Toggle light and dark theme">◐ <span class="long">Theme</span></button>
+    <button class="btn" id="refreshBtn" type="button">↻ <span class="long">Refresh</span></button>
+  </div>
+</header>
+<main class="page">
+  <div class="intro">
+    <div><div class="eyebrow">Human-in-the-loop workspace</div><h1>Grain quality audit</h1><p>Inspect detected grains, compare the current rule-based label with the image, and record corrections for future review.</p></div>
+    <div class="notice"><strong>Model capability note</strong><br>Current M0 provides whole/broken and segmentation-status labels only. Probability confidence, defect-head threshold adaptation, and GBDT retraining are not available in this repository version.</div>
+  </div>
+  <section class="stats">
+    <div class="stat"><div class="label">Saved scans</div><div class="value" id="scanCount">—</div><div class="hint">Available for audit</div></div>
+    <div class="stat"><div class="label">Grains in selected scan</div><div class="value" id="grainCount">—</div><div class="hint">Segmented instances</div></div>
+    <div class="stat"><div class="label">Pending corrections</div><div class="value" id="pendingCount">—</div><div class="hint">Unique grain corrections</div></div>
+    <div class="stat"><div class="label">Total corrections</div><div class="value" id="totalCorrections">—</div><div class="hint">Audit records</div></div>
+  </section>
+  <section>
+    <div class="toolbar">
+      <div class="selectwrap"><label for="scanSelect">SCAN HISTORY</label><select id="scanSelect"><option value="">Loading saved scans…</option></select></div>
+      <div class="filters" id="filters">
+        <button class="filter active" data-filter="ALL">All grains</button>
+        <button class="filter" data-filter="NEEDS_REVIEW">Needs review</button>
+        <button class="filter" data-filter="WHOLE_RICE">Whole</button>
+        <button class="filter" data-filter="BROKEN_RICE">Broken</button>
+        <button class="filter" data-filter="UNRESOLVED_CLUSTER">Unresolved</button>
+        <button class="filter" data-filter="BOUNDARY_TRUNCATED">Boundary</button>
+      </div>
+    </div>
+    <div class="workspace">
+      <section class="viewer">
+        <div class="section-head"><div><div class="section-title">Scan image & grain overlays</div><div class="section-meta" id="scanMeta">Select a saved scan to begin</div></div><span class="pill" id="visibleCount">0 grains</span></div>
+        <div class="image-stage" id="imageStage">
+          <div class="empty"><strong>No scan selected</strong>Run <code>python main.py --image data/samples/sample_1489x2048.jpg</code> first, then refresh.</div>
+        </div>
+        <div class="legend"><span><i class="dot" style="background:#79d29b"></i>Whole rice</span><span><i class="dot" style="background:#e8b85d"></i>Broken rice</span><span><i class="dot" style="background:#f17a70"></i>Needs review</span><span>Click a box to inspect one grain</span></div>
+      </section>
+      <div class="rightcol">
+        <section class="details">
+          <div class="section-head"><div><div class="section-title">Selected grain</div><div class="section-meta">Measurements and correction history</div></div><span class="pill" id="selectedStatus">NONE</span></div>
+          <div class="detail-body" id="detailBody"><div class="empty" style="padding:30px 8px"><strong>Select a grain</strong>Click a bounding box or grain in the list.</div></div>
+        </section>
+        <section class="grainlist">
+          <div class="section-head"><div><div class="section-title">Grain list</div><div class="section-meta">Filtered by the selected category</div></div><span class="pill" id="listCount">0</span></div>
+          <div class="grain-items" id="grainItems"><div class="empty">No scan loaded.</div></div>
+        </section>
+      </div>
+    </div>
+  </section>
+  <div class="statusline" id="statusLine" role="status" aria-live="polite"></div>
+  <div class="footer">RiceAge M0 audit interface · Corrections are logged for analysis and are not automatically retrained.</div>
+</main>
+<script>
+const LABELS = {
+  WHOLE_RICE: "Whole rice",
+  BROKEN_RICE: "Broken rice",
+  BOUNDARY_TRUNCATED: "Boundary truncated",
+  UNRESOLVED_CLUSTER: "Unresolved cluster"
+};
+let scans = [], grains = [], selectedScan = "", selectedGrainId = "", activeFilter = "ALL", currentImage = null;
+const $ = (id) => document.getElementById(id);
+const esc = (value) => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt = (value, digits=2) => value === null || value === undefined || value === "" || !Number.isFinite(Number(value)) ? "—" : Number(value).toFixed(digits);
+function setStatus(message, isError=false){ $("statusLine").textContent=message; $("statusLine").style.color=isError?"var(--danger)":"var(--muted)"; }
+async function api(url, options={}) {
+  const response = await fetch(url, {headers:{"Content-Type":"application/json",...(options.headers||{})},...options});
+  let data={}; try { data=await response.json(); } catch {}
+  if(!response.ok) throw new Error(data.error || data.detail || ("Request failed ("+response.status+")"));
+  return data;
+}
+async function refreshAll(keepScan=true){
+  try{
+    const previous=keepScan?selectedScan:"";
+    const data=await api("/api/scans");
+    scans=data.scans||[];
+    $("scanCount").textContent=scans.length;
+    $("pendingCount").textContent=data.pending_corrections ?? 0;
+    $("totalCorrections").textContent=data.total_corrections ?? 0;
+    const select=$("scanSelect");
+    select.innerHTML=scans.length?scans.map(s=>'<option value="'+esc(s.scan_id)+'">'+esc(new Date(s.created_at*1000).toLocaleString())+' · '+esc(s.grain_count)+' grains · '+esc(s.scan_id.slice(0,8))+'</option>').join(""):'<option value="">No saved scans yet</option>';
+    if(!scans.length){selectedScan="";grains=[];$("grainCount").textContent="0";renderEmpty();return;}
+    selectedScan=scans.some(s=>s.scan_id===previous)?previous:scans[0].scan_id;
+    select.value=selectedScan;
+    await loadScan(selectedScan);
+    await refreshStatus();
+  }catch(e){setStatus(e.message,true);}
+}
+async function refreshStatus(){
+  try{
+    const data=await api("/api/feedback/status");
+    $("pendingCount").textContent=data.pending_corrections ?? 0;
+    $("totalCorrections").textContent=data.total_corrections ?? 0;
+  }catch(e){setStatus("Could not refresh feedback status: "+e.message,true);}
+}
+async function loadScan(scanId){
+  if(!scanId){renderEmpty();return;}
+  try{
+    setStatus("Loading scan records…");
+    const data=await api("/api/scan_grains/"+encodeURIComponent(scanId));
+    selectedScan=scanId;grains=data.grains||[];selectedGrainId="";
+    $("grainCount").textContent=grains.length;
+    const source=scans.find(s=>s.scan_id===scanId);
+    $("scanMeta").textContent=(source?new Date(source.created_at*1000).toLocaleString():"Saved scan")+" · "+scanId;
+    $("imageStage").innerHTML='<div class="image-wrap"><img id="scanImage" alt="Selected rice scan"><canvas id="overlay" aria-label="Interactive grain bounding boxes"></canvas></div>';
+    currentImage=$("scanImage");
+    currentImage.onload=()=>{resizeOverlay();renderGrains();setStatus("Scan loaded. Select any bounding box or grain to review.");};
+    currentImage.onerror=()=>{ $("imageStage").innerHTML='<div class="empty"><strong>Source image unavailable</strong>The scan record exists, but its original image cannot be opened on this machine.</div>';renderGrains();setStatus("Could not load original scan image.",true);};
+    $("overlay").addEventListener("click", event => {
+      const canvas=$("overlay"), image=$("scanImage");
+      if(!image || !image.naturalWidth || !canvas) return;
+      const rect=canvas.getBoundingClientRect();
+      const x=(event.clientX-rect.left)*image.naturalWidth/rect.width;
+      const y=(event.clientY-rect.top)*image.naturalHeight/rect.height;
+      const hit=filteredGrains().slice().reverse().find(g=>{
+        if(!g.bbox || g.bbox.length!==4) return false;
+        const [gx,gy,gw,gh]=g.bbox;
+        return x>=gx && x<=gx+gw && y>=gy && y<=gy+gh;
+      });
+      if(hit) selectGrain(hit.grain_id);
+    });
+    currentImage.src=data.image_url;
+    renderGrains();
+  }catch(e){setStatus(e.message,true);}
+}
+function renderEmpty(){
+  $("imageStage").innerHTML='<div class="empty"><strong>No scan selected</strong>Run <code>python main.py --image data/samples/sample_1489x2048.jpg</code> first, then refresh. The review server reads scans cached by a pipeline run.</div>';
+  $("detailBody").innerHTML='<div class="empty" style="padding:30px 8px"><strong>Select a grain</strong>Click a bounding box or grain in the list.</div>';
+  $("grainItems").innerHTML='<div class="empty">No saved grain records.</div>';
+  $("scanMeta").textContent="Select a saved scan to begin";$("visibleCount").textContent="0 grains";$("listCount").textContent="0";$("grainCount").textContent="0";
+}
+function isNeedsReview(g){return (g.review_flags||[]).length>0 || ["UNRESOLVED_CLUSTER","BOUNDARY_TRUNCATED"].includes(g.display_label);}
+function filteredGrains(){
+  return grains.filter(g=>{
+    const label=g.display_label||g.original_pred;
+    if(activeFilter==="ALL")return true;
+    if(activeFilter==="NEEDS_REVIEW")return isNeedsReview(g);
+    return label===activeFilter;
+  });
+}
+function colorFor(g){
+  if(isNeedsReview(g))return "#f17a70";
+  const label=g.display_label||g.original_pred;
+  return label==="WHOLE_RICE"?"#79d29b":label==="BROKEN_RICE"?"#e8b85d":"#f17a70";
+}
+function resizeOverlay(){
+  const canvas=$("overlay"), image=$("scanImage");
+  if(!canvas||!image||!image.naturalWidth)return;
+  canvas.width=image.clientWidth;canvas.height=image.clientHeight;
+  canvas.style.width=image.clientWidth+"px";canvas.style.height=image.clientHeight+"px";
+  drawOverlay();
+}
+function drawOverlay(){
+  const canvas=$("overlay"), image=$("scanImage");if(!canvas||!image||!image.naturalWidth)return;
+  const ctx=canvas.getContext("2d");ctx.clearRect(0,0,canvas.width,canvas.height);
+  const sx=canvas.width/image.naturalWidth, sy=canvas.height/image.naturalHeight;
+  const visible=filteredGrains();
+  for(const g of visible){
+    if(!g.bbox||g.bbox.length!==4)continue;
+    const [x,y,w,h]=g.bbox, px=x*sx,py=y*sy,pw=w*sx,ph=h*sy,chosen=g.grain_id===selectedGrainId;
+    ctx.lineWidth=chosen?2.5:1.1;ctx.strokeStyle=colorFor(g);ctx.fillStyle=chosen?"#ffffff22":"#00000000";
+    ctx.fillRect(px,py,pw,ph);ctx.strokeRect(px,py,pw,ph);
+    if(chosen){ctx.fillStyle=colorFor(g);ctx.font="bold 11px system-ui";ctx.fillText(g.grain_id,px,Math.max(12,py-4));}
+  }
+  $("visibleCount").textContent=visible.length+" grains";
+}
+function renderGrains(){
+  const visible=filteredGrains();$("listCount").textContent=visible.length;
+  $("grainItems").innerHTML=visible.length?visible.map(g=>{
+    const label=g.display_label||g.original_pred, selected=g.grain_id===selectedGrainId;
+    return '<button class="grain-item '+(selected?'selected':'')+'" data-grain="'+esc(g.grain_id)+'"><span><strong>'+esc(g.grain_id)+'</strong><small>'+esc(LABELS[label]||label)+(isNeedsReview(g)?' · needs review':'')+'</small></span><span class="arrow">›</span></button>';
+  }).join(""):'<div class="empty">No grains match this filter.</div>';
+  $("grainItems").querySelectorAll("[data-grain]").forEach(btn=>btn.addEventListener("click",()=>selectGrain(btn.dataset.grain)));
+  renderDetails();drawOverlay();
+}
+function renderDetails(){
+  const g=grains.find(item=>item.grain_id===selectedGrainId);
+  if(!g){$("selectedStatus").textContent="NONE";$("detailBody").innerHTML='<div class="empty" style="padding:30px 8px"><strong>Select a grain</strong>Click a bounding box or grain in the list.</div>';return;}
+  const m=g.measurements||{}, label=g.display_label||g.original_pred;
+  $("selectedStatus").textContent=g.corrected_label?"CORRECTED":"SELECTED";
+  const nums=[
+    ["Length",m.length_mm==null?fmt(m.length_px)+" px":fmt(m.length_mm)+" mm"],
+    ["Width",m.width_mm==null?fmt(m.width_px)+" px":fmt(m.width_mm)+" mm"],
+    ["Aspect ratio",fmt(m.aspect_ratio)],
+    ["Area",m.area_mm2==null?fmt(m.area_px)+" px²":fmt(m.area_mm2)+" mm²"],
+    ["Solidity",fmt(m.solidity,3)],
+    ["Circularity",fmt(m.circularity,3)]
+  ];
+  $("detailBody").innerHTML='<div class="grain-title"><div class="grain-id">'+esc(g.grain_id)+'</div><span class="pill">'+esc(g.review_flags?.length?'REVIEW FLAG':'M0 LABEL')+'</span></div>'+
+    '<div class="class-name">'+esc(LABELS[label]||label)+'</div><div class="subtext">Initial pipeline label: '+esc(LABELS[g.original_pred]||g.original_pred)+'</div>'+
+    '<div class="measurements">'+nums.map(([k,v])=>'<div class="measure"><span>'+esc(k)+'</span><b>'+esc(v)+'</b></div>').join("")+'</div>'+
+    (g.review_flags?.length?'<div class="callout">Review flags: '+esc(g.review_flags.join(", "))+'</div>':'')+
+    '<div class="detail-label">Correct classification</div><div class="corrections">'+Object.entries(LABELS).map(([key,name])=>'<button class="label-btn '+(key===label?'selected':'')+'" data-label="'+key+'">'+esc(name)+'<span>'+key+'</span></button>').join("")+'</div>'+
+    '<div class="save-row"><button class="btn btn-primary" id="saveCorrection">Save correction</button><button class="btn" id="resetLabel" title="Use the original pipeline label">Reset</button></div>'+
+    '<div class="callout">Corrections are stored in the audit log. They do not change the rule-based classifier or imply a confidence score.</div>';
+  $("detailBody").querySelectorAll("[data-label]").forEach(btn=>btn.addEventListener("click",()=>{
+    $("detailBody").querySelectorAll("[data-label]").forEach(b=>b.classList.toggle("selected",b===btn));
+    $("saveCorrection").dataset.label=btn.dataset.label;
+  }));
+  $("saveCorrection").dataset.label=label;
+  $("saveCorrection").addEventListener("click",()=>saveCorrection(g,$("saveCorrection").dataset.label));
+  $("resetLabel").addEventListener("click",()=>saveCorrection(g,g.original_pred));
+}
+function selectGrain(id){selectedGrainId=id;renderGrains();}
+async function saveCorrection(grain,label){
+  try{
+    const data=await api("/api/feedback/correct",{method:"POST",body:JSON.stringify({scan_id:selectedScan,grain_id:grain.grain_id,corrected_label:label})});
+    setStatus(data.message||"Correction saved.");
+    await loadScan(selectedScan);selectedGrainId=grain.grain_id;renderGrains();await refreshStatus();
+  }catch(e){setStatus(e.message,true);}
+}
+$("filters").querySelectorAll("[data-filter]").forEach(btn=>btn.addEventListener("click",()=>{
+  activeFilter=btn.dataset.filter;$("filters").querySelectorAll("[data-filter]").forEach(b=>b.classList.toggle("active",b===btn));renderGrains();
+}));
+$("scanSelect").addEventListener("change",e=>loadScan(e.target.value));
+$("refreshBtn").addEventListener("click",()=>refreshAll(true));
+$("themeBtn").addEventListener("click",()=>{
+  const root=document.documentElement;const next=root.dataset.theme==="light"?"dark":"light";root.dataset.theme=next;
+  try{localStorage.setItem("riceage-theme",next);}catch{}
+  resizeOverlay();
+});
+window.addEventListener("resize",resizeOverlay);
+try{document.documentElement.dataset.theme=localStorage.getItem("riceage-theme")||"dark";}catch{}
+refreshAll(false);
+</script>
+</body>
+</html>

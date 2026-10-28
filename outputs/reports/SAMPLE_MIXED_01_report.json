@@ -1,0 +1,468 @@
+{
+  "report_metadata": {
+    "sample_id": "SAMPLE_MIXED_01",
+    "generated_at": "2026-10-12T12:55:48.217311",
+    "pipeline_version": "RiceAge M3.0-Quality",
+    "source_image": "data/dataset/images/mixed/mixed 1.jpg"
+  },
+  "quality_metrics": {
+    "sample_id": "SAMPLE_MIXED_01",
+    "total_detected_objects": 32,
+    "total_rice_grains": 24,
+    "total_foreign_matter": 8,
+    "whole_count": 4,
+    "broken_count": 20,
+    "chalky_count": 6,
+    "damaged_count": 1,
+    "discoloured_count": 2,
+    "multi_defect_rice_count": 0,
+    "whole_percentage": 16.67,
+    "broken_percentage": 83.33,
+    "chalky_percentage": 25.0,
+    "damaged_percentage": 4.17,
+    "discoloured_percentage": 8.33,
+    "foreign_matter_percentage": 25.0,
+    "denominator_definitions": {
+      "whole_percentage": "count(Whole Rice) / total_rice_grains * 100",
+      "broken_percentage": "count(Broken Rice) / total_rice_grains * 100",
+      "chalky_percentage": "count(Chalky Rice) / total_rice_grains * 100",
+      "damaged_percentage": "count(Damaged Rice) / total_rice_grains * 100",
+      "discoloured_percentage": "count(Discoloured Rice) / total_rice_grains * 100",
+      "foreign_matter_percentage": "total_foreign_matter / total_detected_objects * 100"
+    }
+  },
+  "grading_decision": {
+    "profile_id": "CODEX_CXS_198_1995",
+    "standard_name": "Codex Standard for Rice (CXS 198-1995, Revised 2019)",
+    "assigned_grade": "Substandard / Below FAQ",
+    "status": "DECIDED",
+    "is_compliant": false,
+    "passed_criteria": {},
+    "failed_criteria": {
+      "Extra": {
+        "broken_rice": "Broken 83.33% exceeds max 5.0%",
+        "chalky_rice": "Chalky 25.0% exceeds max 2.0%",
+        "damaged_rice": "Damaged 4.17% exceeds max 1.5%",
+        "discoloured_rice": "Discoloured 8.33% exceeds max 0.5%",
+        "foreign_matter": "Foreign Matter 25.0% exceeds max 0.1%"
+      },
+      "Grade_1": {
+        "broken_rice": "Broken 83.33% exceeds max 10.0%",
+        "chalky_rice": "Chalky 25.0% exceeds max 3.0%",
+        "damaged_rice": "Damaged 4.17% exceeds max 2.0%",
+        "discoloured_rice": "Discoloured 8.33% exceeds max 1.0%",
+        "foreign_matter": "Foreign Matter 25.0% exceeds max 0.2%"
+      },
+      "Grade_2": {
+        "broken_rice": "Broken 83.33% exceeds max 15.0%",
+        "chalky_rice": "Chalky 25.0% exceeds max 5.0%",
+        "damaged_rice": "Damaged 4.17% exceeds max 3.0%",
+        "discoloured_rice": "Discoloured 8.33% exceeds max 2.0%",
+        "foreign_matter": "Foreign Matter 25.0% exceeds max 0.5%"
+      },
+      "Grade_3": {
+        "broken_rice": "Broken 83.33% exceeds max 25.0%",
+        "chalky_rice": "Chalky 25.0% exceeds max 8.0%",
+        "damaged_rice": "Damaged 4.17% exceeds max 4.0%",
+        "discoloured_rice": "Discoloured 8.33% exceeds max 3.0%",
+        "foreign_matter": "Foreign Matter 25.0% exceeds max 1.0%"
+      }
+    },
+    "unsupported_criteria": [
+      "moisture_content (Max 15% m/m - Requires oven/moisture meter)",
+      "odor (Must be free from abnormal flavors and odors)",
+      "live_insects (Free from live insects)"
+    ],
+    "audit_notes": [
+      "Evaluated using optical criteria under Codex Standard for Rice (CXS 198-1995, Revised 2019).",
+      "Authority: Codex Alimentarius Commission (FAO / WHO).",
+      "Sample exceeds maximum allowed defect limits for all defined grade tiers."
+    ]
+  },
+  "grain_classifications": [
+    {
+      "object_id": "GRAIN_01601",
+      "is_rice": true,
+      "is_foreign_matter": false,
+      "morphology": NaN,
+      "is_chalky": true,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.0015
+      }
+    },
+    {
+      "object_id": "GRAIN_01602",
+      "is_rice": true,
+      "is_foreign_matter": false,
+      "morphology": NaN,
+      "is_chalky": false,
+      "is_damaged": false,
+      "is_discoloured": true,
+      "confidences": {
+        "foreign_matter_prob": 0.0132
+      }
+    },
+    {
+      "object_id": "GRAIN_01603",
+      "is_rice": true,
+      "is_foreign_matter": false,
+      "morphology": NaN,
+      "is_chalky": true,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.0001
+      }
+    },
+    {
+      "object_id": "GRAIN_01604",
+      "is_rice": false,
+      "is_foreign_matter": true,
+      "morphology": "N/A",
+      "is_chalky": false,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 1.0
+      }
+    },
+    {
+      "object_id": "GRAIN_01605",
+      "is_rice": true,
+      "is_foreign_matter": false,
+      "morphology": "Broken",
+      "is_chalky": false,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.0002
+      }
+    },
+    {
+      "object_id": "GRAIN_01606",
+      "is_rice": true,
+      "is_foreign_matter": false,
+      "morphology": "Broken",
+      "is_chalky": false,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.0006
+      }
+    },
+    {
+      "object_id": "GRAIN_01607",
+      "is_rice": true,
+      "is_foreign_matter": false,
+      "morphology": "Broken",
+      "is_chalky": false,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.0007
+      }
+    },
+    {
+      "object_id": "GRAIN_01608",
+      "is_rice": true,
+      "is_foreign_matter": false,
+      "morphology": NaN,
+      "is_chalky": true,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.0002
+      }
+    },
+    {
+      "object_id": "GRAIN_01609",
+      "is_rice": true,
+      "is_foreign_matter": false,
+      "morphology": NaN,
+      "is_chalky": false,
+      "is_damaged": true,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.0002
+      }
+    },
+    {
+      "object_id": "GRAIN_01610",
+      "is_rice": true,
+      "is_foreign_matter": false,
+      "morphology": "Broken",
+      "is_chalky": false,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.0002
+      }
+    },
+    {
+      "object_id": "GRAIN_01611",
+      "is_rice": true,
+      "is_foreign_matter": false,
+      "morphology": "Broken",
+      "is_chalky": false,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.0001
+      }
+    },
+    {
+      "object_id": "GRAIN_01612",
+      "is_rice": true,
+      "is_foreign_matter": false,
+      "morphology": "Whole",
+      "is_chalky": false,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.0002
+      }
+    },
+    {
+      "object_id": "GRAIN_01613",
+      "is_rice": false,
+      "is_foreign_matter": true,
+      "morphology": "N/A",
+      "is_chalky": false,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.9998
+      }
+    },
+    {
+      "object_id": "GRAIN_01614",
+      "is_rice": true,
+      "is_foreign_matter": false,
+      "morphology": "Whole",
+      "is_chalky": false,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.0002
+      }
+    },
+    {
+      "object_id": "GRAIN_01615",
+      "is_rice": false,
+      "is_foreign_matter": true,
+      "morphology": "N/A",
+      "is_chalky": false,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.9999
+      }
+    },
+    {
+      "object_id": "GRAIN_01616",
+      "is_rice": true,
+      "is_foreign_matter": false,
+      "morphology": NaN,
+      "is_chalky": true,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.0004
+      }
+    },
+    {
+      "object_id": "GRAIN_01617",
+      "is_rice": true,
+      "is_foreign_matter": false,
+      "morphology": NaN,
+      "is_chalky": false,
+      "is_damaged": false,
+      "is_discoloured": true,
+      "confidences": {
+        "foreign_matter_prob": 0.0018
+      }
+    },
+    {
+      "object_id": "GRAIN_01618",
+      "is_rice": true,
+      "is_foreign_matter": false,
+      "morphology": "Broken",
+      "is_chalky": false,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.0001
+      }
+    },
+    {
+      "object_id": "GRAIN_01619",
+      "is_rice": true,
+      "is_foreign_matter": false,
+      "morphology": NaN,
+      "is_chalky": true,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.0011
+      }
+    },
+    {
+      "object_id": "GRAIN_01620",
+      "is_rice": true,
+      "is_foreign_matter": false,
+      "morphology": "Whole",
+      "is_chalky": false,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.0001
+      }
+    },
+    {
+      "object_id": "GRAIN_01621",
+      "is_rice": true,
+      "is_foreign_matter": false,
+      "morphology": "Broken",
+      "is_chalky": false,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.0001
+      }
+    },
+    {
+      "object_id": "GRAIN_01622",
+      "is_rice": false,
+      "is_foreign_matter": true,
+      "morphology": "N/A",
+      "is_chalky": false,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 1.0
+      }
+    },
+    {
+      "object_id": "GRAIN_01623",
+      "is_rice": true,
+      "is_foreign_matter": false,
+      "morphology": NaN,
+      "is_chalky": true,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.0002
+      }
+    },
+    {
+      "object_id": "GRAIN_01624",
+      "is_rice": true,
+      "is_foreign_matter": false,
+      "morphology": "Broken",
+      "is_chalky": false,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.0002
+      }
+    },
+    {
+      "object_id": "GRAIN_01625",
+      "is_rice": true,
+      "is_foreign_matter": false,
+      "morphology": "Broken",
+      "is_chalky": false,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.0001
+      }
+    },
+    {
+      "object_id": "GRAIN_01626",
+      "is_rice": true,
+      "is_foreign_matter": false,
+      "morphology": "Whole",
+      "is_chalky": false,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.0001
+      }
+    },
+    {
+      "object_id": "GRAIN_01627",
+      "is_rice": false,
+      "is_foreign_matter": true,
+      "morphology": "N/A",
+      "is_chalky": false,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 1.0
+      }
+    },
+    {
+      "object_id": "GRAIN_01628",
+      "is_rice": false,
+      "is_foreign_matter": true,
+      "morphology": "N/A",
+      "is_chalky": false,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.9997
+      }
+    },
+    {
+      "object_id": "GRAIN_01629",
+      "is_rice": false,
+      "is_foreign_matter": true,
+      "morphology": "N/A",
+      "is_chalky": false,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.9995
+      }
+    },
+    {
+      "object_id": "GRAIN_01630",
+      "is_rice": false,
+      "is_foreign_matter": true,
+      "morphology": "N/A",
+      "is_chalky": false,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.9999
+      }
+    },
+    {
+      "object_id": "GRAIN_01631",
+      "is_rice": true,
+      "is_foreign_matter": false,
+      "morphology": "Broken",
+      "is_chalky": false,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.0001
+      }
+    },
+    {
+      "object_id": "GRAIN_01632",
+      "is_rice": true,
+      "is_foreign_matter": false,
+      "morphology": "Broken",
+      "is_chalky": false,
+      "is_damaged": false,
+      "is_discoloured": false,
+      "confidences": {
+        "foreign_matter_prob": 0.0001
+      }
+    }
+  ]
+}

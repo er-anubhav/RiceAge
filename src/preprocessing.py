@@ -174,14 +174,20 @@ def clear_scanner_bezel(
     cleaned = image.copy()
     h, w = cleaned.shape[:2]
 
+    # Fill cleared margins with background median to avoid creating artificial pitch-black edges
+    if image.ndim == 3:
+        bg_fill = np.median(image, axis=(0, 1)).astype(image.dtype)
+    else:
+        bg_fill = np.median(image).astype(image.dtype)
+
     if top > 0:
-        cleaned[:top] = 0
+        cleaned[:top] = bg_fill
     if bottom > 0:
-        cleaned[h - bottom:] = 0
+        cleaned[h - bottom:] = bg_fill
     if left > 0:
-        cleaned[:, :left] = 0
+        cleaned[:, :left] = bg_fill
     if right > 0:
-        cleaned[:, w - right:] = 0
+        cleaned[:, w - right:] = bg_fill
 
     return cleaned, (top, bottom, left, right)
 

@@ -1,0 +1,54 @@
+{
+  "report_metadata": {
+    "sample_id": "SAMPLE_WHOLE_01",
+    "generated_at": "2026-10-12T12:55:57.646893",
+    "pipeline_version": "RiceAge M3.0-Quality",
+    "source_image": "data/dataset/images/whole/whole 1.jpg"
+  },
+  "quality_metrics": {
+    "sample_id": "SAMPLE_WHOLE_01",
+    "total_detected_objects": 0,
+    "total_rice_grains": 0,
+    "total_foreign_matter": 0,
+    "whole_count": 0,
+    "broken_count": 0,
+    "chalky_count": 0,
+    "damaged_count": 0,
+    "discoloured_count": 0,
+    "multi_defect_rice_count": 0,
+    "whole_percentage": 0.0,
+    "broken_percentage": 0.0,
+    "chalky_percentage": 0.0,
+    "damaged_percentage": 0.0,
+    "discoloured_percentage": 0.0,
+    "foreign_matter_percentage": 0.0,
+    "denominator_definitions": {
+      "whole_percentage": "count(Whole Rice) / total_rice_grains * 100",
+      "broken_percentage": "count(Broken Rice) / total_rice_grains * 100",
+      "chalky_percentage": "count(Chalky Rice) / total_rice_grains * 100",
+      "damaged_percentage": "count(Damaged Rice) / total_rice_grains * 100",
+      "discoloured_percentage": "count(Discoloured Rice) / total_rice_grains * 100",
+      "foreign_matter_percentage": "total_foreign_matter / total_detected_objects * 100"
+    }
+  },
+  "grading_decision": {
+    "profile_id": "CODEX_CXS_198_1995",
+    "standard_name": "Codex Standard for Rice (CXS 198-1995, Revised 2019)",
+    "assigned_grade": null,
+    "status": "INDETERMINATE",
+    "is_compliant": false,
+    "passed_criteria": {},
+    "failed_criteria": {
+      "total_rice_grains": "Sample contains 0 rice grains."
+    },
+    "unsupported_criteria": [
+      "moisture_content (Max 15% m/m - Requires oven/moisture meter)",
+      "odor (Must be free from abnormal flavors and odors)",
+      "live_insects (Free from live insects)"
+    ],
+    "audit_notes": [
+      "Cannot grade sample: 0 valid rice grains detected."
+    ]
+  },
+  "grain_classifications": []
+}
