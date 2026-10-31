@@ -37,5 +37,23 @@ htmlcov/
 *.swp
 *.swo
 
-# Large raw scans can be kept or tracked with Git LFS if needed
-# data/raw/*.jpg
+# Large raw scans and datasets
+data/raw/
+dataset/
+*.zip
+*.tar.gz
+
+# Checkpoints and Model Weights
+*.pt
+*.pth
+*.onnx
+*.bin
+weights/
+runs/
+latest_training_state.pt
+best_*.pt
+
+# Scratch & Logs
+*.log
+.scratch/
+

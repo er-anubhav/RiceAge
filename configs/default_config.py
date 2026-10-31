@@ -30,8 +30,12 @@ class CalibrationConfig:
 @dataclass
 class SegmentationConfig:
     # Segmentation and thresholding parameters.
-    method: str = "otsu"  # 'otsu', 'adaptive', 'triangle'
-    # Morphological cleaning
+    engine: str = "yolo"  # 'yolo' (Deep Learning) or 'classic' (Otsu/Adaptive/Triangle)
+    method: str = "otsu"  # 'otsu', 'adaptive', 'triangle' (for classic engine)
+    runtime: str = "auto"  # 'auto', 'onnx', 'pytorch'
+    yolo_weights_path: str = "runs/rice_seg_yolo11s_1280/weights/best.pt"
+    yolo_onnx_path: str = "runs/rice_seg_yolo11s_1280/weights/best.onnx"
+    # Morphological cleaning (for classic engine)
     morph_kernel_size: int = 3
     min_object_area_px: int = 40  # filter out dust/noise < 40 px
     fill_holes: bool = True
@@ -69,6 +73,12 @@ class ClassificationConfig:
     broken_length_ratio_thresh: float = 0.75
     # Aspect ratio threshold (length / width)
     broken_aspect_ratio_thresh: float = 1.6
+    # AI Classifier settings
+    use_ai_classifier: bool = True
+    runtime: str = "auto"  # 'auto', 'onnx', 'pytorch'
+    classifier_weights_path: str = "runs/stage2_resnet50/best_resnet50.pth"
+    classifier_onnx_path: str = "runs/stage2_resnet50/grain_resnet50.onnx"
+    classifier_model_type: str = "resnet50"
 
 
 @dataclass

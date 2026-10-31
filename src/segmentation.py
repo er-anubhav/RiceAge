@@ -1,10 +1,122 @@
-# Image segmentation: thresholding and morphological cleanup.
+# Image segmentation: thresholding, morphological cleanup, and deep learning YOLO segmentation.
 
-from typing import Tuple, Dict, Any
+import os
+from typing import Tuple, Dict, Any, Optional
 import numpy as np
 import cv2
 from skimage import filters
 from scipy import ndimage as ndi
+
+_CACHED_YOLO = None
+_CACHED_YOLO_PATH = None
+
+
+def segment_yolo(
+    image_bgr: np.ndarray,
+    weights_path: str = "runs/rice_seg_yolo11s_1280/weights/best.pt",
+    conf_threshold: float = 0.25,
+    imgsz: int = 1280,
+    max_det: int = 2000,
+    device: Optional[str] = None
+) -> Tuple[np.ndarray, np.ndarray, Dict[int, Dict[str, Any]], Dict[str, Any]]:
+    # Perform instance segmentation using trained YOLO11s-seg model.
+    global _CACHED_YOLO, _CACHED_YOLO_PATH
+    try:
+        from ultralytics import YOLO
+    except ImportError as e:
+        raise ImportError("ultralytics package is required for YOLO segmentation engine.") from e
+
+    if not os.path.exists(weights_path):
+        raise FileNotFoundError(f"YOLO segmentation weights not found: {weights_path}")
+
+    if _CACHED_YOLO is None or _CACHED_YOLO_PATH != weights_path:
+        _CACHED_YOLO = YOLO(weights_path)
+        _CACHED_YOLO_PATH = weights_path
+
+    if device is None:
+        if weights_path.endswith(".onnx"):
+            device = "cpu"
+        else:
+            import torch
+            device = 0 if torch.cuda.is_available() else "cpu"
+
+    results = _CACHED_YOLO.predict(
+        source=image_bgr,
+        imgsz=imgsz,
+        conf=conf_threshold,
+        max_det=max_det,
+        device=device,
+        verbose=False
+    )
+    res = results[0]
+
+    img_h, img_w = image_bgr.shape[:2]
+    raw_instance_mask = np.zeros((img_h, img_w), dtype=np.int32)
+    clean_mask = np.zeros((img_h, img_w), dtype=np.uint8)
+    temp_diagnostics: Dict[int, Dict[str, Any]] = {}
+
+    if res.masks is not None and len(res.masks.xy) > 0:
+        masks_xy = res.masks.xy
+        confidences = res.boxes.conf.cpu().numpy() if res.boxes is not None else np.ones(len(masks_xy))
+
+        draw_id = 1
+        for i, poly in enumerate(masks_xy):
+            if len(poly) < 3:
+                continue
+            poly_int = poly.astype(np.int32)
+            poly_reshaped = poly_int.reshape((-1, 1, 2))
+
+            area = cv2.contourArea(poly_reshaped)
+            if area < 20:
+                continue
+
+            hull = cv2.convexHull(poly_reshaped)
+            hull_area = cv2.contourArea(hull)
+            solidity = float(area / hull_area) if hull_area > 0 else 1.0
+
+            cv2.fillPoly(raw_instance_mask, [poly_int], draw_id)
+            cv2.fillPoly(clean_mask, [poly_int], 255)
+
+            temp_diagnostics[draw_id] = {
+                "status": "isolated_single",
+                "parent_component_id": draw_id,
+                "solidity": round(solidity, 3),
+                "component_area": int(area),
+                "was_split": False,
+                "yolo_conf": round(float(confidences[i]), 3) if i < len(confidences) else 1.0
+            }
+            draw_id += 1
+
+    # Contiguous reindexing 1..N based on surviving pixels
+    surviving_ids = np.unique(raw_instance_mask)
+    surviving_ids = surviving_ids[surviving_ids > 0]
+
+    max_val = int(raw_instance_mask.max()) if len(surviving_ids) > 0 else 0
+    lut = np.zeros(max_val + 1, dtype=np.int32)
+    grain_diagnostics: Dict[int, Dict[str, Any]] = {}
+
+    for new_id, old_id in enumerate(surviving_ids, start=1):
+        lut[old_id] = new_id
+        diag = temp_diagnostics[old_id]
+        diag["parent_component_id"] = new_id
+        grain_diagnostics[new_id] = diag
+
+    instance_mask = lut[raw_instance_mask]
+    total_grains = len(grain_diagnostics)
+
+    separation_stats = {
+        "engine": "yolo11s-seg",
+        "raw_connected_components": total_grains,
+        "total_detected_grains": total_grains,
+        "isolated_single_grains": total_grains,
+        "clusters_detected": 0,
+        "clusters_successfully_split": 0,
+        "clusters_unresolved": 0,
+        "grains_derived_from_clusters": 0,
+        "fragments_count": 0,
+    }
+
+    return instance_mask, clean_mask, grain_diagnostics, separation_stats
 
 
 # Segment image using Otsu's optimal global thresholding.
