@@ -181,13 +181,13 @@ def clear_scanner_bezel(
         bg_fill = np.median(image).astype(image.dtype)
 
     if top > 0:
-        cleaned[:top] = bg_fill
+        cleaned[:top] = 0
     if bottom > 0:
-        cleaned[h - bottom:] = bg_fill
+        cleaned[h - bottom:] = 0
     if left > 0:
-        cleaned[:, :left] = bg_fill
+        cleaned[:, :left] = 0
     if right > 0:
-        cleaned[:, w - right:] = bg_fill
+        cleaned[:, w - right:] = 0
 
     return cleaned, (top, bottom, left, right)
 

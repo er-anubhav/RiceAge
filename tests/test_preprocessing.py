@@ -30,7 +30,7 @@ def test_clear_scanner_bezel():
     cleaned, margins = clear_scanner_bezel(img, saturation_thresh=240, safety_padding=2)
     assert margins[1] == 7 # 5 + 2 padding
     # Check that cleared region is filled with background median (~60), not 250
-    assert cleaned[-1, -1, 0] == 60
+    assert cleaned[-1, -1, 0] == 0
 
 
 def test_is_boundary_grain():

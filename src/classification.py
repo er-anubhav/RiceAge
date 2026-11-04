@@ -23,12 +23,14 @@ class RealDataTaxonomy(str, Enum):
     # Taxonomy verified and present in current controlled scanner clean rice data.
     WHOLE_RICE = "WHOLE_RICE"
     BROKEN_RICE = "BROKEN_RICE"
+    SMALL_BROKEN_RICE = "SMALL_BROKEN_RICE"
 
 
 class FutureDefectTaxonomy(str, Enum):
     # Target defect taxonomy for supervised models with labeled data.
     WHOLE_RICE = "WHOLE_RICE"
     BROKEN_RICE = "BROKEN_RICE"
+    SMALL_BROKEN_RICE = "SMALL_BROKEN_RICE"
     CHALKY_RICE = "CHALKY_RICE"
     DISCOLORED_RICE = "DISCOLORED_RICE"
     DAMAGED_RICE = "DAMAGED_RICE"
@@ -36,6 +38,31 @@ class FutureDefectTaxonomy(str, Enum):
     UNRIPE_RICE = "UNRIPE_RICE"
     FOREIGN_MATERIAL = "FOREIGN_MATERIAL"
     OTHER_GRAIN = "OTHER_GRAIN"
+
+
+def estimate_grain_mass(
+    length_val: float,
+    width_val: float,
+    pixel_scale_mm: Optional[float] = None,
+    bulk_density_g_cm3: float = 1.40
+) -> float:
+    """
+    Estimates single grain mass in grams using triaxial ellipsoid volume:
+    V = (4/3) * pi * (L/2) * (W/2) * (T/2) = (pi / 6) * L * W * (0.7 * W)
+    Mass (g) = Volume (mm^3) * 10^-3 (cm^3/mm^3) * Density (g/cm^3)
+    """
+    if pixel_scale_mm is not None and pixel_scale_mm > 0:
+        l_mm = length_val * pixel_scale_mm
+        w_mm = width_val * pixel_scale_mm
+    else:
+        # Default nominal 300 DPI conversion (0.08467 mm/px) if calibration is unverified
+        l_mm = length_val * 0.08466667
+        w_mm = width_val * 0.08466667
+
+    t_mm = 0.70 * w_mm
+    vol_mm3 = (np.pi / 6.0) * l_mm * w_mm * t_mm
+    mass_g = vol_mm3 * 1e-3 * bulk_density_g_cm3
+    return max(float(mass_g), 1e-6)
 
 
 AI_CLASSES = [
@@ -123,7 +150,9 @@ def classify_grains_ai(
     original_bgr: np.ndarray,
     weights_path: str = "runs/stage2_resnet50/best_resnet50.pth",
     broken_length_ratio_thresh: float = 0.75,
-    broken_aspect_ratio_thresh: float = 1.6
+    small_broken_length_ratio_thresh: float = 0.25,
+    broken_aspect_ratio_thresh: float = 1.6,
+    pixel_scale_mm: Optional[float] = None
 ) -> pd.DataFrame:
     # Multi-Attribute AI Classifier: Combines physical morphology with ResNet-50 defect detection.
     df = measurements_df.copy()
@@ -167,6 +196,7 @@ def classify_grains_ai(
         median_whole_len = float(non_boundary["length_px"].median()) if not non_boundary.empty else float(df["length_px"].median())
 
     broken_cutoff = broken_length_ratio_thresh * median_whole_len
+    small_broken_cutoff = small_broken_length_ratio_thresh * median_whole_len
 
     # Extract crops and optical features
     crop_tensors = []
@@ -288,7 +318,8 @@ def classify_grains_ai(
         p_foreign = prob_vec[IDX["foreign_matter"]]
         p_whole = prob_vec[IDX["whole"]]
 
-        is_broken = (length < broken_cutoff) or (ar < broken_aspect_ratio_thresh)
+        is_small_broken = (length < small_broken_cutoff)
+        is_broken = (length < broken_cutoff) or (ar < broken_aspect_ratio_thresh) or is_small_broken
 
         has_oxidation = (rg_ratio > 1.025 * tray_median_rg)
         has_mottled = (core_std_v > 1.25 * tray_median_std)
@@ -339,10 +370,14 @@ def classify_grains_ai(
             q_class = FutureDefectTaxonomy.OTHER_GRAIN.value
             conf = float(p_dehusked)
             reason = "Dehusked / Unmilled paddy grain"
+        elif is_small_broken:
+            q_class = FutureDefectTaxonomy.SMALL_BROKEN_RICE.value
+            conf = float(max(p_broken, 0.90))
+            reason = f"Small Broken (<25%): Length {length:.1f}px < 25% of median ({median_whole_len:.1f}px)"
         elif is_broken:
             q_class = FutureDefectTaxonomy.BROKEN_RICE.value
             conf = float(max(p_broken, 0.85))
-            reason = f"Broken: Length {length:.1f}px < 75% of median ({median_whole_len:.1f}px)"
+            reason = f"Broken (25-75%): Length {length:.1f}px < 75% of median ({median_whole_len:.1f}px)"
         else:
             q_class = FutureDefectTaxonomy.WHOLE_RICE.value
             conf = float(p_whole)
@@ -359,6 +394,10 @@ def classify_grains_ai(
     df["is_sound"] = is_sound_list
     df["confidence"] = confidences
     df["classification_reason"] = reasons
+    df["estimated_mass_g"] = [
+        estimate_grain_mass(row["length_px"], row.get("width_px", row.get("length_px", 1.0) / max(row.get("aspect_ratio", 1.0), 1.0)), pixel_scale_mm)
+        for _, row in df.iterrows()
+    ]
 
     return df
 
@@ -367,12 +406,16 @@ def classify_grains_ai(
 def classify_grains_rule_based(
     measurements_df: pd.DataFrame,
     broken_length_ratio_thresh: float = 0.75,
-    broken_aspect_ratio_thresh: float = 1.6
+    small_broken_length_ratio_thresh: float = 0.25,
+    broken_aspect_ratio_thresh: float = 1.6,
+    pixel_scale_mm: Optional[float] = None,
+    reference_whole_length_mm: Optional[float] = None
 ) -> pd.DataFrame:
     df = measurements_df.copy()
     if df.empty:
         df["quality_class"] = []
         df["classification_reason"] = []
+        df["estimated_mass_g"] = []
         return df
 
     unbroken_candidates = df[
@@ -382,7 +425,9 @@ def classify_grains_rule_based(
         (df["aspect_ratio"] >= 1.8)
     ]
 
-    if not unbroken_candidates.empty:
+    if reference_whole_length_mm is not None and pixel_scale_mm is not None and pixel_scale_mm > 0:
+        median_whole_length = float(reference_whole_length_mm / pixel_scale_mm)
+    elif not unbroken_candidates.empty:
         median_whole_length = float(unbroken_candidates["length_px"].median())
     else:
         non_boundary = df[~df["is_boundary"]] if "is_boundary" in df.columns else df
@@ -390,6 +435,9 @@ def classify_grains_rule_based(
 
     quality_classes = []
     reasons = []
+
+    small_broken_cutoff = small_broken_length_ratio_thresh * median_whole_length
+    broken_cutoff = broken_length_ratio_thresh * median_whole_length
 
     for _, row in df.iterrows():
         status = row.get("separation_status", "")
@@ -402,13 +450,153 @@ def classify_grains_rule_based(
         elif row.get("is_boundary", False):
             quality_classes.append("BOUNDARY_TRUNCATED")
             reasons.append("Grain touches image boundary (truncated measurements)")
-        elif length < (broken_length_ratio_thresh * median_whole_length) or ar < broken_aspect_ratio_thresh:
+        elif length < small_broken_cutoff:
+            quality_classes.append(RealDataTaxonomy.SMALL_BROKEN_RICE.value)
+            reasons.append(f"Small Broken: Length {length:.1f}px < 25% of median unbroken ({median_whole_length:.1f}px)")
+        elif length < broken_cutoff or ar < broken_aspect_ratio_thresh:
             quality_classes.append(RealDataTaxonomy.BROKEN_RICE.value)
-            reasons.append(f"Length {length:.1f}px < 75% of median unbroken ({median_whole_length:.1f}px)")
+            reasons.append(f"Broken: Length {length:.1f}px < 75% of median unbroken ({median_whole_length:.1f}px)")
         else:
             quality_classes.append(RealDataTaxonomy.WHOLE_RICE.value)
             reasons.append("Length >= 75% median unbroken length and aspect ratio >= 1.6")
 
     df["quality_class"] = quality_classes
     df["classification_reason"] = reasons
+    df["estimated_mass_g"] = [
+        estimate_grain_mass(row["length_px"], row.get("width_px", row.get("length_px", 1.0) / max(row.get("aspect_ratio", 1.0), 1.0)), pixel_scale_mm)
+        for _, row in df.iterrows()
+    ]
     return df
+
+
+def compute_quality_metrics(
+    df: pd.DataFrame,
+    pixel_scale_mm: Optional[float] = None
+) -> Dict[str, Any]:
+    """
+    Computes comprehensive Count Basis and Mass Basis (% w/w) quality metrics
+    under Codex Alimentarius Standard 198-1995 and APSCSCL procurement specifications.
+    """
+    if df.empty:
+        return {
+            "total_grains": 0,
+            "total_mass_g": 0.0,
+            "count_basis": {},
+            "mass_basis": {},
+            "commercial_grade": "Unclassified"
+        }
+
+    # Ensure mass column exists
+    if "estimated_mass_g" not in df.columns:
+        df["estimated_mass_g"] = [
+            estimate_grain_mass(row["length_px"], row.get("width_px", row.get("length_px", 1.0) / max(row.get("aspect_ratio", 1.0), 1.0)), pixel_scale_mm)
+            for _, row in df.iterrows()
+        ]
+
+    total_count = len(df)
+    total_mass = float(df["estimated_mass_g"].sum())
+
+    is_foreign = df["quality_class"] == FutureDefectTaxonomy.FOREIGN_MATERIAL.value
+    df_rice = df[~is_foreign]
+    rice_count = len(df_rice)
+    rice_mass = float(df_rice["estimated_mass_g"].sum()) if rice_count > 0 else 1e-6
+
+    whole_mask = df_rice["quality_class"] == FutureDefectTaxonomy.WHOLE_RICE.value
+    broken_mask = df_rice["quality_class"] == FutureDefectTaxonomy.BROKEN_RICE.value
+    small_broken_mask = df_rice["quality_class"] == FutureDefectTaxonomy.SMALL_BROKEN_RICE.value
+    chalky_mask = df_rice["quality_class"] == FutureDefectTaxonomy.CHALKY_RICE.value
+    damaged_mask = df_rice["quality_class"] == FutureDefectTaxonomy.DAMAGED_RICE.value
+    discoloured_mask = df_rice["quality_class"] == FutureDefectTaxonomy.DISCOLORED_RICE.value
+
+    # Counts
+    c_whole = int(whole_mask.sum())
+    c_broken = int(broken_mask.sum())
+    c_small_broken = int(small_broken_mask.sum())
+    c_chalky = int(chalky_mask.sum())
+    c_damaged = int(damaged_mask.sum())
+    c_discoloured = int(discoloured_mask.sum())
+    c_foreign = int(is_foreign.sum())
+
+    # Masses (g)
+    m_whole = float(df_rice.loc[whole_mask, "estimated_mass_g"].sum())
+    m_broken = float(df_rice.loc[broken_mask, "estimated_mass_g"].sum())
+    m_small_broken = float(df_rice.loc[small_broken_mask, "estimated_mass_g"].sum())
+    m_chalky = float(df_rice.loc[chalky_mask, "estimated_mass_g"].sum())
+    m_damaged = float(df_rice.loc[damaged_mask, "estimated_mass_g"].sum())
+    m_discoloured = float(df_rice.loc[discoloured_mask, "estimated_mass_g"].sum())
+    m_foreign = float(df.loc[is_foreign, "estimated_mass_g"].sum())
+
+    count_basis = {
+        "whole_pct": round(100.0 * c_whole / max(rice_count, 1), 2),
+        "broken_pct": round(100.0 * c_broken / max(rice_count, 1), 2),
+        "small_broken_pct": round(100.0 * c_small_broken / max(rice_count, 1), 2),
+        "total_broken_pct": round(100.0 * (c_broken + c_small_broken) / max(rice_count, 1), 2),
+        "chalky_pct": round(100.0 * c_chalky / max(rice_count, 1), 2),
+        "damaged_pct": round(100.0 * c_damaged / max(rice_count, 1), 2),
+        "discoloured_pct": round(100.0 * c_discoloured / max(rice_count, 1), 2),
+        "foreign_matter_pct": round(100.0 * c_foreign / max(total_count, 1), 2),
+        "whole_count": c_whole,
+        "broken_count": c_broken,
+        "small_broken_count": c_small_broken,
+        "total_broken_count": c_broken + c_small_broken,
+        "chalky_count": c_chalky,
+        "damaged_count": c_damaged,
+        "discoloured_count": c_discoloured,
+        "foreign_matter_count": c_foreign,
+        "total_rice_grains": rice_count,
+        "total_objects": total_count,
+    }
+
+    mass_basis = {
+        "whole_pct": round(100.0 * m_whole / max(rice_mass, 1e-6), 2),
+        "broken_pct": round(100.0 * m_broken / max(rice_mass, 1e-6), 2),
+        "small_broken_pct": round(100.0 * m_small_broken / max(rice_mass, 1e-6), 2),
+        "total_broken_pct": round(100.0 * (m_broken + m_small_broken) / max(rice_mass, 1e-6), 2),
+        "chalky_pct": round(100.0 * m_chalky / max(rice_mass, 1e-6), 2),
+        "damaged_pct": round(100.0 * m_damaged / max(rice_mass, 1e-6), 2),
+        "discoloured_pct": round(100.0 * m_discoloured / max(rice_mass, 1e-6), 2),
+        "foreign_matter_pct": round(100.0 * m_foreign / max(total_mass, 1e-6), 2),
+        "whole_mass_g": round(m_whole, 4),
+        "broken_mass_g": round(m_broken, 4),
+        "small_broken_mass_g": round(m_small_broken, 4),
+        "total_broken_mass_g": round(m_broken + m_small_broken, 4),
+        "chalky_mass_g": round(m_chalky, 4),
+        "damaged_mass_g": round(m_damaged, 4),
+        "discoloured_mass_g": round(m_discoloured, 4),
+        "foreign_matter_mass_g": round(m_foreign, 4),
+        "rice_mass_g": round(rice_mass, 4),
+        "total_sample_mass_g": round(total_mass, 4),
+    }
+
+    # Grade determination based on Codex / APSCSCL Mass Basis limits
+    mb = mass_basis
+    is_grade_1 = (
+        mb["whole_pct"] >= 75.0 and
+        mb["broken_pct"] <= 15.0 and
+        mb["small_broken_pct"] <= 1.0 and
+        mb["chalky_pct"] <= 3.0 and
+        mb["damaged_pct"] <= 2.0 and
+        mb["discoloured_pct"] <= 1.0 and
+        mb["foreign_matter_pct"] <= 0.5
+    )
+    is_grade_2 = (
+        mb["whole_pct"] >= 65.0 and
+        mb["total_broken_pct"] <= 25.0 and
+        mb["damaged_pct"] <= 4.0 and
+        mb["foreign_matter_pct"] <= 1.0
+    )
+
+    if is_grade_1:
+        grade = "Grade 1 (Conforming to APSCSCL Specifications)"
+    elif is_grade_2:
+        grade = "Grade 2 (Commercial Standard)"
+    else:
+        grade = "Sub-Standard / Out of Specification"
+
+    return {
+        "count_basis": count_basis,
+        "mass_basis": mass_basis,
+        "commercial_grade": grade,
+        "total_grains": total_count,
+        "total_mass_g": round(total_mass, 4)
+    }

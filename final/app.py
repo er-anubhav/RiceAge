@@ -67,7 +67,53 @@ if not os.path.exists(HISTORY_FILE):
     with open(HISTORY_FILE, 'w') as f:
         json.dump([], f)
 
-# --- IMPORT REAL ML INFERENCE ENGINE ---
+# --- IMPORT PRODUCTION ONNX PIPELINE & DUAL-PLATEN MANAGER ---
+PROJECT_ROOT = os.path.dirname(BASE_DIR)
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+try:
+    from configs.default_config import PipelineConfig
+    from src.pipeline import RiceQualityPipeline
+    from src.hardware.dual_platen import (
+        DualPlatenManager,
+        create_distortion_free_composite,
+        acquire_hardware_scan as acquire_hw_scan,
+        DEFAULT_SCAN_DPI as DUAL_DEFAULT_DPI
+    )
+    from src.reporting_pdf import generate_apscscl_pdf_certificate
+
+    # Detect production ONNX weights (local runs/ or CM5 weights/)
+    yolo_onnx = os.path.join(PROJECT_ROOT, "runs", "rice_seg_yolo11s_1280", "weights", "best.onnx")
+    if not os.path.exists(yolo_onnx):
+        yolo_onnx = os.path.join(PROJECT_ROOT, "weights", "best.onnx")
+
+    resnet_onnx = os.path.join(PROJECT_ROOT, "runs", "stage2_resnet50", "grain_resnet50.onnx")
+    if not os.path.exists(resnet_onnx):
+        resnet_onnx = os.path.join(PROJECT_ROOT, "weights", "grain_resnet50.onnx")
+
+    pipe_cfg = PipelineConfig()
+    if os.path.exists(yolo_onnx):
+        pipe_cfg.segmentation.engine = "yolo"
+        pipe_cfg.segmentation.yolo_weights_path = yolo_onnx
+    else:
+        pipe_cfg.segmentation.engine = "classic"
+
+    if os.path.exists(resnet_onnx):
+        pipe_cfg.classification.use_ai_classifier = True
+        pipe_cfg.classification.classifier_weights_path = resnet_onnx
+    else:
+        pipe_cfg.classification.use_ai_classifier = False
+
+    PIPELINE_ENGINE = RiceQualityPipeline(config=pipe_cfg)
+    DUAL_PLATEN_MANAGER = DualPlatenManager(pipeline=PIPELINE_ENGINE)
+    print(f"[RiceAge Station] Production ONNX Pipeline Loaded (YOLO: {os.path.basename(yolo_onnx) if os.path.exists(yolo_onnx) else 'classic'}, ResNet: {os.path.basename(resnet_onnx) if os.path.exists(resnet_onnx) else 'rules'})")
+except Exception as e:
+    print(f"[Warning] Failed to initialize RiceQualityPipeline / DualPlatenManager: {e}")
+    PIPELINE_ENGINE = None
+    DUAL_PLATEN_MANAGER = None
+
+# Fallback M4 Logistic Regression weights engine
 try:
     from model.inference import QualityInferenceEngine
     AI_ENGINE = QualityInferenceEngine(MODEL_WEIGHTS)
@@ -75,12 +121,12 @@ except Exception as e:
     print(f"[Warning] Failed to import QualityInferenceEngine: {e}")
     AI_ENGINE = None
 
-# --- DUAL SCANNER CONFIGURATION ---
+# --- DUAL SCANNER HARDWARE CONFIGURATION ---
 PORT = 5000
-SCAN_RESOLUTION = "600"                      # Updated to 600 DPI
-SCANNER_BOTTOM_ID = "pixma:04A91912_50C8B2"  # Verified Bottom Canon LiDE 400
-SCANNER_TOP_ID = "pixma:04A91912_53012D"     # Verified Top Canon LiDE 400
-SETTLE_DELAY = 5                             # Time to wait for USB power bus to stabilize
+SCAN_RESOLUTION = os.environ.get("RICEAGE_SCAN_DPI", "300")   # Configurable: 300 DPI default (avoids ARM RAM exhaustion), 600 DPI supported
+SCANNER_BOTTOM_ID = os.environ.get("SCANNER_BOTTOM_ID", "pixma:04A91912_50C8B2")  # Bottom Canon LiDE 400
+SCANNER_TOP_ID = os.environ.get("SCANNER_TOP_ID", "pixma:04A91912_53012D")        # Top Canon LiDE 400
+SETTLE_DELAY = int(os.environ.get("RICEAGE_SETTLE_DELAY", "5"))                   # USB power bus stabilization delay
 
 # --- THEME COLORS ---
 BG_COLOR = "#F9F8F4"
@@ -254,38 +300,110 @@ def acquire_hardware_scan(output_file, device_id, resolution=SCAN_RESOLUTION, ti
 
 @app.route('/api/scan', methods=['GET', 'POST'])
 def api_scan():
-    # Execute Dual-Scan via API
+    # Configurable scan resolution via query param or default
+    req_dpi = request.args.get("dpi") or SCAN_RESOLUTION
     bottom_file = os.path.join(UPLOADS_DIR, "api_scan_bottom.jpg")
     top_file = os.path.join(UPLOADS_DIR, "api_scan_top.jpg")
     output_file = os.path.join(UPLOADS_DIR, "latest_scan.jpg")
     
-    success_b, err_b = acquire_hardware_scan(bottom_file, SCANNER_BOTTOM_ID, resolution=SCAN_RESOLUTION)
+    success_b, err_b = acquire_hardware_scan(bottom_file, SCANNER_BOTTOM_ID, resolution=req_dpi)
     time.sleep(SETTLE_DELAY)
-    success_t, err_t = acquire_hardware_scan(top_file, SCANNER_TOP_ID, resolution=SCAN_RESOLUTION)
+    success_t, err_t = acquire_hardware_scan(top_file, SCANNER_TOP_ID, resolution=req_dpi)
 
-    if success_b and success_t:
+    fallback_sample = os.path.join(BASE_DIR, 'model', 'sample_default.jpg')
+    if not os.path.exists(fallback_sample):
+        fallback_sample = os.path.join(BASE_DIR, '..', 'data', 'samples', 'sample_1489x2048.jpg')
+
+    # Platen file paths
+    b_path = bottom_file if (success_b and os.path.exists(bottom_file)) else (fallback_sample if os.path.exists(fallback_sample) else None)
+    t_path = top_file if (success_t and os.path.exists(top_file)) else None
+
+    if not b_path and not t_path:
+        return jsonify({"error": f"Scanner device errors: {err_b} / {err_t}"}), 503
+
+    # Generate sequential sample ID
+    try:
+        with open(HISTORY_FILE, 'r') as f:
+            raw_history = json.load(f)
+        serial_num = len(raw_history) + 1
+    except Exception:
+        raw_history = []
+        serial_num = 1
+    sample_id = f"Sample-{serial_num:04d}"
+
+    # Use DualPlatenManager if available (distortion-free padding, mass-basis metrics, ONNX inference)
+    if DUAL_PLATEN_MANAGER is not None:
         try:
-            img_b = cv2.imread(bottom_file)
-            img_t = cv2.imread(top_file)
-            h1, w1 = img_b.shape[:2]
-            h2, w2 = img_t.shape[:2]
-            if h1 != h2:
-                img_t = cv2.resize(img_t, (w2, h1))
-            merged = cv2.hconcat([img_b, img_t])
-            cv2.imwrite(output_file, merged)
-        except Exception:
-            shutil.copy2(bottom_file, output_file)
-    else:
-        fallback_sample = os.path.join(BASE_DIR, 'model', 'sample_default.jpg')
-        if not os.path.exists(fallback_sample):
-            fallback_sample = os.path.join(BASE_DIR, '..', 'data', 'samples', 'sample_1489x2048.jpg')
-        if os.path.exists(fallback_sample):
-            shutil.copy2(fallback_sample, output_file)
-        elif not os.path.exists(output_file):
-            return jsonify({"error": f"Scanner device errors: {err_b} / {err_t}"}), 503
+            analysis = DUAL_PLATEN_MANAGER.run_dual_analysis(
+                b_path,
+                t_path,
+                sample_id=sample_id,
+                commodity="Raw Rice",
+                composite_output_path=output_file
+            )
+            global LATEST_RESULTS
+            LATEST_RESULTS.update(analysis)
+            LATEST_RESULTS["image"] = os.path.basename(output_file)
+            LATEST_RESULTS["live_step"] = "Analysis Complete"
 
-    result = process_image_analysis(output_file)
+            raw_history.insert(0, LATEST_RESULTS.copy())
+            try:
+                with open(HISTORY_FILE, 'w') as f:
+                    json.dump(raw_history, f, indent=2)
+            except Exception as e:
+                print(f"Failed saving history: {e}")
+
+            return jsonify(LATEST_RESULTS)
+        except Exception as e:
+            print(f"[API Scan] DualPlatenManager error, falling back to legacy single-pass: {e}")
+
+    # Fallback to single-pass analysis
+    target_img = b_path or t_path
+    shutil.copy2(target_img, output_file)
+    result = process_image_analysis(output_file, sample_id=sample_id)
     return jsonify(result)
+
+
+@app.route('/api/certificate/<sample_id>')
+@app.route('/api/report/<sample_id>/pdf')
+def api_certificate_pdf(sample_id):
+    # Generates and streams official APSCSCL single-page Quality Certificate
+    target_record = None
+    if os.path.exists(HISTORY_FILE):
+        try:
+            with open(HISTORY_FILE, 'r') as f:
+                history = json.load(f)
+            for item in history:
+                if str(item.get('serial', '')) == sample_id or str(item.get('sample_id', '')) == sample_id:
+                    target_record = item
+                    break
+        except Exception:
+            pass
+
+    if not target_record:
+        target_record = LATEST_RESULTS.copy()
+
+    pdf_filename = f"Certificate_{sample_id}_{int(time.time())}.pdf"
+    pdf_path = os.path.join(UPLOADS_DIR, pdf_filename)
+
+    overlay_path = None
+    if target_record.get('image'):
+        cand_img = os.path.join(UPLOADS_DIR, target_record['image'])
+        if os.path.exists(cand_img):
+            overlay_path = cand_img
+
+    try:
+        from src.reporting_pdf import generate_apscscl_pdf_certificate
+        generate_apscscl_pdf_certificate(target_record, pdf_path, overlay_image_path=overlay_path)
+        from flask import send_file
+        return send_file(
+            pdf_path,
+            mimetype="application/pdf",
+            as_attachment=True,
+            download_name=f"APSCSCL_Quality_Certificate_{sample_id}.pdf"
+        )
+    except Exception as e:
+        return jsonify({"error": f"Failed generating PDF certificate: {e}"}), 500
 
 @app.route('/api/analyze', methods=['POST'])
 def api_analyze():
@@ -801,45 +919,21 @@ class GrainAnalyzerApp:
             if self.abort_test: return self.handle_abort()
             self.root.after(0, lambda: self.complete_step(success_t))
 
-            # 4. IMAGE MERGING (Dual-Plane Stitching)
-            self.root.after(0, lambda: self.add_step("Merging Dual-Plane Images...", 1))
+            # 4. DUAL-PLATEN DISTORTION-FREE INGESTION
+            self.root.after(0, lambda: self.add_step("Aligning Dual Platens (Zero-Distortion)...", 1))
             fallback_sample = os.path.join(BASE_DIR, 'model', 'sample_default.jpg')
             if not os.path.exists(fallback_sample):
                 fallback_sample = os.path.join(BASE_DIR, '..', 'data', 'samples', 'sample_1489x2048.jpg')
 
-            if success_b and success_t:
-                try:
-                    img_b = cv2.imread(bottom_file)
-                    img_t = cv2.imread(top_file)
-                    # Resize top to match bottom height, then horizontally stitch
-                    h1, w1 = img_b.shape[:2]
-                    h2, w2 = img_t.shape[:2]
-                    if h1 != h2:
-                        img_t = cv2.resize(img_t, (w2, h1))
-                    merged = cv2.hconcat([img_b, img_t])
-                    cv2.imwrite(output_file, merged)
-                except Exception as e:
-                    print(f"Stitching error: {e}")
-                    shutil.copy2(bottom_file, output_file)
-            else:
-                # Fallback handler
-                if success_b:
-                    shutil.copy2(bottom_file, output_file)
-                elif os.path.exists(fallback_sample):
-                    shutil.copy2(fallback_sample, output_file)
-                else:
-                    self.root.after(0, lambda: self.complete_step(False))
-                    self.root.after(0, lambda: self.update_main_button("Scanner Connect Error", FAIL_COLOR))
-                    self.root.after(0, self.hide_bottom_progress)
-                    return
+            b_path = bottom_file if (success_b and os.path.exists(bottom_file)) else (fallback_sample if os.path.exists(fallback_sample) else None)
+            t_path = top_file if (success_t and os.path.exists(top_file)) else None
 
-            time.sleep(1)
-            self.root.after(0, self.finish_bottom_progress)
-            self.root.after(0, lambda: self.complete_step(True))
+            if not b_path and not t_path:
+                self.root.after(0, lambda: self.complete_step(False))
+                self.root.after(0, lambda: self.update_main_button("Scanner Connect Error", FAIL_COLOR))
+                self.root.after(0, self.hide_bottom_progress)
+                return
 
-            # 5. ML INFERENCING
-            self.root.after(0, lambda: self.add_step("Processing Edge Detection & ML Inferencing...", 3))
-            
             try:
                 with open(HISTORY_FILE, 'r') as f:
                     raw_history = json.load(f)
@@ -851,12 +945,38 @@ class GrainAnalyzerApp:
             serial_str = f"Sample-{serial_num:04d}"
             global LATEST_RESULTS
             LATEST_RESULTS["serial"] = serial_str
-            timestamp_val = int(time.time())
-            LATEST_RESULTS["timestamp"] = timestamp_val
-            LATEST_RESULTS["timestamp_str"] = time.strftime("%d/%m/%Y %H:%M:%S")
+            commodity = self.commodity_var.get() if hasattr(self, 'commodity_var') else "Raw Rice"
 
-            # Execute real ML inference with M4 quality weights on the merged stitched image
-            self.execute_real_ml_analysis(output_file)
+            time.sleep(1)
+            self.root.after(0, self.finish_bottom_progress)
+            self.root.after(0, lambda: self.complete_step(True))
+
+            # 5. MULTIMODAL ONNX INFERENCING & MASS-BASIS ANALYSIS
+            self.root.after(0, lambda: self.add_step("Processing Pure-ONNX Segmentation & Mass Metrics...", 3))
+
+            if DUAL_PLATEN_MANAGER is not None:
+                try:
+                    analysis = DUAL_PLATEN_MANAGER.run_dual_analysis(
+                        b_path,
+                        t_path,
+                        sample_id=serial_str,
+                        commodity=commodity,
+                        composite_output_path=output_file
+                    )
+                    LATEST_RESULTS.update(analysis)
+                except Exception as e:
+                    print(f"[GUI Scan] DualPlatenManager execution fallback: {e}")
+                    if b_path and t_path:
+                        create_distortion_free_composite(cv2.imread(b_path), cv2.imread(t_path), output_path=output_file)
+                    else:
+                        shutil.copy2(b_path or t_path, output_file)
+                    self.execute_real_ml_analysis(output_file)
+            else:
+                if b_path and t_path:
+                    create_distortion_free_composite(cv2.imread(b_path), cv2.imread(t_path), output_path=output_file)
+                else:
+                    shutil.copy2(b_path or t_path, output_file)
+                self.execute_real_ml_analysis(output_file)
             time.sleep(2)
             self.root.after(0, lambda: self.complete_step(True))
 

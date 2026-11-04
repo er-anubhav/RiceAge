@@ -64,3 +64,4 @@ outputs/
 final/static/uploads/*.jpg
 !final/static/uploads/.gitkeep
 final/app.log
+final/static/uploads/*.pdf
