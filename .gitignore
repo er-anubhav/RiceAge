@@ -6,14 +6,16 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
+/dist/
+!final/dist/
 downloads/
 eggs/
 .eggs/
 lib/
 lib64/
 parts/
-sdist/
+s/dist/
+!final/dist/
 var/
 wheels/
 *.egg-info/
@@ -57,3 +59,9 @@ best_*.pt
 outputs/
 *.log
 .scratch/
+
+# Kiosk runtime uploads and logs
+final/static/uploads/*.jpg
+!final/static/uploads/.gitkeep
+final/app.log
+final/static/uploads/*.pdf

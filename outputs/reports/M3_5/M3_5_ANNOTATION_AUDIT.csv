@@ -1,0 +1,116 @@
+image_name,annotation_id_1,annotation_id_2,label_1,label_2,iou,intersection_area_px,issue_type,severity,recommended_action
+chalky 10.jpg,chalky 10.jpg_p2,chalky 10.jpg_p3,Discoloured,Chalky,0.4996,2893.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 10.jpg,chalky 10.jpg_p8,chalky 10.jpg_p9,Chalky,Discoloured,0.6919,3990.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 10.jpg,chalky 10.jpg_p11,chalky 10.jpg_p12,Chalky,Discoloured,0.5164,3785.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 10.jpg,chalky 10.jpg_p21,chalky 10.jpg_p22,Chalky,Discoloured,0.6399,2751.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 11.jpg,chalky 11.jpg_p10,chalky 11.jpg_p11,Chalky,Discoloured,0.5957,2886.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 11.jpg,chalky 11.jpg_p12,chalky 11.jpg_p13,Chalky,Discoloured,0.6549,3312.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 11.jpg,chalky 11.jpg_p17,chalky 11.jpg_p18,Discoloured,Discoloured,0.7939,4044.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,CRITICAL,Deduplicate identical double annotation
+chalky 11.jpg,chalky 11.jpg_p20,chalky 11.jpg_p21,Chalky,Discoloured,0.6403,2586.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 12.jpg,chalky 12.jpg_p6,chalky 12.jpg_p7,Chalky,Discoloured,0.6377,2925.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 12.jpg,chalky 12.jpg_p11,chalky 12.jpg_p23,Discoloured,Chalky,0.7198,2900.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 12.jpg,chalky 12.jpg_p19,chalky 12.jpg_p20,Chalky,Discoloured,0.5987,3780.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 12.jpg,chalky 12.jpg_p21,chalky 12.jpg_p22,Chalky,Discoloured,0.6812,1816.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 13.jpg,chalky 13.jpg_p4,chalky 13.jpg_p16,Discoloured,Chalky,0.7121,3858.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 13.jpg,chalky 13.jpg_p5,chalky 13.jpg_p18,Discoloured,Chalky,0.6916,2599.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 13.jpg,chalky 13.jpg_p6,chalky 13.jpg_p19,Discoloured,Chalky,0.6641,3999.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 13.jpg,chalky 13.jpg_p8,chalky 13.jpg_p9,Chalky,Discoloured,0.4627,2389.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 14.jpg,chalky 14.jpg_p18,chalky 14.jpg_p19,Chalky,Discoloured,0.6447,4905.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 15.jpg,chalky 15.jpg_p1,chalky 15.jpg_p13,Discoloured,Chalky,0.691,3254.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 15.jpg,chalky 15.jpg_p2,chalky 15.jpg_p12,Discoloured,Chalky,0.4881,3856.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 16.jpg,chalky 16.jpg_p11,chalky 16.jpg_p22,Chalky,Discoloured,0.5305,1696.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 16.jpg,chalky 16.jpg_p14,chalky 16.jpg_p15,Chalky,Discoloured,0.8042,2829.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 16.jpg,chalky 16.jpg_p17,chalky 16.jpg_p18,Chalky,Discoloured,0.6867,1841.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 17.jpg,chalky 17.jpg_p14,chalky 17.jpg_p15,Chalky,Discoloured,0.5444,2856.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 18.jpg,chalky 18.jpg_p4,chalky 18.jpg_p5,Discoloured,Chalky,0.4802,4217.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 18.jpg,chalky 18.jpg_p10,chalky 18.jpg_p17,Discoloured,Chalky,0.6053,2535.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 19.jpg,chalky 19.jpg_p0,chalky 19.jpg_p22,Chalky,Discoloured,0.5392,2278.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 19.jpg,chalky 19.jpg_p13,chalky 19.jpg_p14,Discoloured,Chalky,0.6355,2284.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 19.jpg,chalky 19.jpg_p18,chalky 19.jpg_p19,Chalky,Discoloured,0.519,4129.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 2.jpg,chalky 2.jpg_p0,chalky 2.jpg_p20,Chalky,Discoloured,0.5935,5060.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 20.jpg,chalky 20.jpg_p12,chalky 20.jpg_p13,Chalky,Discoloured,0.8405,2534.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 20.jpg,chalky 20.jpg_p17,chalky 20.jpg_p18,Chalky,Discoloured,0.5749,3431.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 20.jpg,chalky 20.jpg_p19,chalky 20.jpg_p20,Chalky,Discoloured,0.5976,2376.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 20.jpg,chalky 20.jpg_p21,chalky 20.jpg_p22,Chalky,Discoloured,0.7832,1976.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 3.jpg,chalky 3.jpg_p12,chalky 3.jpg_p13,Chalky,Discoloured,0.4853,3134.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 3.jpg,chalky 3.jpg_p14,chalky 3.jpg_p15,Chalky,Discoloured,0.6473,3531.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 3.jpg,chalky 3.jpg_p16,chalky 3.jpg_p17,Chalky,Discoloured,0.5865,2712.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 3.jpg,chalky 3.jpg_p21,chalky 3.jpg_p22,Chalky,Discoloured,0.5471,4655.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 3.jpg,chalky 3.jpg_p23,chalky 3.jpg_p24,Chalky,Discoloured,0.6499,2484.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 4.jpg,chalky 4.jpg_p2,chalky 4.jpg_p19,Chalky,Discoloured,0.5303,2914.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 4.jpg,chalky 4.jpg_p5,chalky 4.jpg_p6,Chalky,Discoloured,0.7747,2135.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 4.jpg,chalky 4.jpg_p16,chalky 4.jpg_p18,Chalky,Discoloured,0.9279,2831.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 4.jpg,chalky 4.jpg_p22,chalky 4.jpg_p23,Chalky,Discoloured,0.8432,3474.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 5.jpg,chalky 5.jpg_p10,chalky 5.jpg_p11,Chalky,Discoloured,0.4984,3145.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 5.jpg,chalky 5.jpg_p16,chalky 5.jpg_p17,Chalky,Discoloured,0.8497,2679.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 6.jpg,chalky 6.jpg_p0,chalky 6.jpg_p7,Chalky,Discoloured,0.6461,2791.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 6.jpg,chalky 6.jpg_p6,chalky 6.jpg_p21,Chalky,Discoloured,0.611,2976.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 7.jpg,chalky 7.jpg_p2,chalky 7.jpg_p3,Chalky,Discoloured,0.8424,2796.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 7.jpg,chalky 7.jpg_p6,chalky 7.jpg_p13,Discoloured,Chalky,0.8509,1792.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 7.jpg,chalky 7.jpg_p20,chalky 7.jpg_p21,Chalky,Discoloured,0.7996,2897.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 7.jpg,chalky 7.jpg_p22,chalky 7.jpg_p23,Chalky,Discoloured,0.8415,3675.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 8.jpg,chalky 8.jpg_p2,chalky 8.jpg_p3,Chalky,Discoloured,0.6616,3778.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 8.jpg,chalky 8.jpg_p17,chalky 8.jpg_p18,Chalky,Discoloured,0.759,3298.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 8.jpg,chalky 8.jpg_p20,chalky 8.jpg_p21,Chalky,Discoloured,0.7358,3584.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 9.jpg,chalky 9.jpg_p3,chalky 9.jpg_p4,Chalky,Discoloured,0.839,2459.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky 9.jpg,chalky 9.jpg_p10,chalky 9.jpg_p11,Chalky,Chalky,0.7729,2440.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,CRITICAL,Deduplicate identical double annotation
+chalky.jpg,chalky.jpg_p2,chalky.jpg_p3,Discoloured,Chalky,0.7392,2899.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky.jpg,chalky.jpg_p5,chalky.jpg_p6,Discoloured,Chalky,0.6821,1817.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky.jpg,chalky.jpg_p9,chalky.jpg_p14,Discoloured,Chalky,0.6868,4455.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky.jpg,chalky.jpg_p11,chalky.jpg_p12,Discoloured,Chalky,0.8154,3409.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+chalky.jpg,chalky.jpg_p13,chalky.jpg_p16,Discoloured,Chalky,0.584,3284.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 1.jpg,mixed 1.jpg_p7,mixed 1.jpg_p8,Chalky,Damaged,0.5622,4139.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 1.jpg,mixed 1.jpg_p22,mixed 1.jpg_p23,Chalky,Broken,0.4811,4034.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 10.jpg,mixed 10.jpg_p0,mixed 10.jpg_p3,Broken,Chalky,0.6371,5062.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 10.jpg,mixed 10.jpg_p1,mixed 10.jpg_p2,Damaged,Discoloured,0.518,3875.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 10.jpg,mixed 10.jpg_p11,mixed 10.jpg_p12,Discoloured,Broken,0.5874,2481.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 10.jpg,mixed 10.jpg_p17,mixed 10.jpg_p18,Discoloured,Chalky,0.5637,5335.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 11.jpg,mixed 11.jpg_p10,mixed 11.jpg_p11,Damaged,Discoloured,0.4019,3052.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 11.jpg,mixed 11.jpg_p15,mixed 11.jpg_p16,Discoloured,Damaged,0.8558,3531.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 11.jpg,mixed 11.jpg_p25,mixed 11.jpg_p26,Damaged,Discoloured,0.6008,3419.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 11.jpg,mixed 11.jpg_p31,mixed 11.jpg_p32,Chalky,Broken,0.4897,2159.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 12.jpg,mixed 12.jpg_p8,mixed 12.jpg_p10,Discoloured,Damaged,0.6283,3360.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 12.jpg,mixed 12.jpg_p11,mixed 12.jpg_p12,Chalky,Broken,0.4873,3870.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 12.jpg,mixed 12.jpg_p14,mixed 12.jpg_p15,Discoloured,Damaged,0.5962,4662.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 12.jpg,mixed 12.jpg_p23,mixed 12.jpg_p24,Damaged,Chalky,0.583,6558.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 12.jpg,mixed 12.jpg_p33,mixed 12.jpg_p34,Discoloured,Damaged,0.3422,10412.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 13.jpg,mixed 13.jpg_p1,mixed 13.jpg_p2,Damaged,Chalky,0.5765,6942.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 13.jpg,mixed 13.jpg_p11,mixed 13.jpg_p12,Discoloured,Discoloured,0.333,5706.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,CRITICAL,Deduplicate identical double annotation
+mixed 13.jpg,mixed 13.jpg_p19,mixed 13.jpg_p20,Whole,Discoloured,0.4788,5793.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 14.jpg,mixed 14.jpg_p7,mixed 14.jpg_p9,Damaged,Chalky,0.5657,4991.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 14.jpg,mixed 14.jpg_p8,mixed 14.jpg_p10,Damaged,Discoloured,0.6039,5480.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 14.jpg,mixed 14.jpg_p17,mixed 14.jpg_p19,Damaged,Chalky,0.6264,4988.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 14.jpg,mixed 14.jpg_p24,mixed 14.jpg_p25,Damaged,Chalky,0.4687,3092.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 15.jpg,mixed 15.jpg_p10,mixed 15.jpg_p11,Whole,Discoloured,0.4013,6742.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 15.jpg,mixed 15.jpg_p12,mixed 15.jpg_p14,Discoloured,Whole,0.4602,4746.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 15.jpg,mixed 15.jpg_p19,mixed 15.jpg_p20,Chalky,Damaged,0.4469,8448.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 16.jpg,mixed 16.jpg_p7,mixed 16.jpg_p8,Discoloured,Damaged,0.3555,4323.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 17.jpg,mixed 17.jpg_p1,mixed 17.jpg_p2,Damaged,Discoloured,0.5727,8664.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 17.jpg,mixed 17.jpg_p3,mixed 17.jpg_p4,Damaged,Damaged,0.5324,7249.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,CRITICAL,Deduplicate identical double annotation
+mixed 17.jpg,mixed 17.jpg_p8,mixed 17.jpg_p9,Chalky,Damaged,0.5902,6274.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 18.jpg,mixed 18.jpg_p0,mixed 18.jpg_p1,Chalky,Whole,0.4609,7312.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 18.jpg,mixed 18.jpg_p13,mixed 18.jpg_p14,Discoloured,Damaged,0.3857,4686.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 18.jpg,mixed 18.jpg_p15,mixed 18.jpg_p16,Chalky,Damaged,0.5676,2596.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 19.jpg,mixed 19.jpg_p4,mixed 19.jpg_p5,Chalky,Damaged,0.3523,4472.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 19.jpg,mixed 19.jpg_p9,mixed 19.jpg_p10,Broken,Discoloured,0.4014,6054.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 2.jpg,mixed 2.jpg_p0,mixed 2.jpg_p1,Chalky,Damaged,0.3309,4809.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 20.jpg,mixed 20.jpg_p1,mixed 20.jpg_p20,Broken,Chalky,0.4119,3070.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 20.jpg,mixed 20.jpg_p3,mixed 20.jpg_p4,Damaged,Broken,0.6265,6662.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 20.jpg,mixed 20.jpg_p5,mixed 20.jpg_p6,Whole,Discoloured,0.2906,5045.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 20.jpg,mixed 20.jpg_p7,mixed 20.jpg_p8,Damaged,Discoloured,0.4871,5521.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 20.jpg,mixed 20.jpg_p9,mixed 20.jpg_p10,Whole,Discoloured,0.4128,6100.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 20.jpg,mixed 20.jpg_p16,mixed 20.jpg_p17,Chalky,Damaged,0.3535,6493.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 3.jpg,mixed 3.jpg_p0,mixed 3.jpg_p3,Chalky,Damaged,0.549,6657.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 3.jpg,mixed 3.jpg_p1,mixed 3.jpg_p2,Chalky,Damaged,0.609,6611.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 3.jpg,mixed 3.jpg_p8,mixed 3.jpg_p36,Chalky,Broken,0.4423,2547.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 3.jpg,mixed 3.jpg_p31,mixed 3.jpg_p32,Damaged,Chalky,0.5043,5802.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 5.jpg,mixed 5.jpg_p7,mixed 5.jpg_p8,Discoloured,Damaged,0.5827,4955.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 5.jpg,mixed 5.jpg_p26,mixed 5.jpg_p27,Chalky,Broken,0.4375,5570.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 5.jpg,mixed 5.jpg_p28,mixed 5.jpg_p29,Damaged,Chalky,0.5376,3028.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 6.jpg,mixed 6.jpg_p24,mixed 6.jpg_p27,Chalky,Damaged,0.3785,4174.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 8.jpg,mixed 8.jpg_p23,mixed 8.jpg_p24,Chalky,Damaged,0.411,7604.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 9.jpg,mixed 9.jpg_p0,mixed 9.jpg_p27,Damaged,Chalky,0.5525,6235.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 9.jpg,mixed 9.jpg_p8,mixed 9.jpg_p9,Chalky,Damaged,0.4694,7607.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 9.jpg,mixed 9.jpg_p10,mixed 9.jpg_p11,Discoloured,Damaged,0.3053,4189.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+mixed 9.jpg,mixed 9.jpg_p16,mixed 9.jpg_p17,Damaged,Chalky,0.3788,3916.0,DUPLICATE_OR_MULTI_DEFECT_ANNOTATION,HIGH,Unify into single physical grain with multi-defect tags
+whole 4.jpg / whole 5.jpg,ALL,ALL,Whole,Whole,1.0,0.0,DUPLICATE_IMAGE_FILE,CRITICAL,Lock into identical CV fold (Fold 1) to prevent train/test leakage.

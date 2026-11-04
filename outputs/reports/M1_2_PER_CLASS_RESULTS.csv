@@ -1,0 +1,7 @@
+category,image_count,gt_count,pred_count_hybrid,pred_count_watershed,micro_tp_hybrid,micro_fp_hybrid,micro_fn_hybrid,micro_precision_hybrid,micro_recall_hybrid,micro_f1_hybrid,micro_tp_watershed,micro_fp_watershed,micro_fn_watershed,micro_precision_watershed,micro_recall_watershed,micro_f1_watershed,macro_precision_hybrid,macro_recall_hybrid,macro_f1_hybrid,macro_precision_watershed,macro_recall_watershed,macro_f1_watershed,mean_matched_iou,merges_resolved_by_hybrid,debris_fragments_added_by_hybrid
+broken,20,398,398,398,398,0,0,1.0,1.0,1.0,398,0,0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.3048,0,0
+chalky,20,462,402,400,402,0,60,1.0,0.8701,0.9306,400,0,62,1.0,0.8658,0.9281,1.0,0.8728,0.9314,1.0,0.8686,0.9289,0.3815,2,0
+damaged,19,371,378,375,371,7,0,0.9815,1.0,0.9907,368,7,3,0.9813,0.9919,0.9866,0.9821,1.0,0.9908,0.9821,0.992,0.9866,0.5301,3,0
+foreign_matter,20,369,790,764,354,436,15,0.4481,0.9593,0.6109,354,410,15,0.4634,0.9593,0.6249,0.4596,0.9646,0.6168,0.4787,0.9646,0.633,0.173,0,26
+mixed,20,534,592,586,478,114,56,0.8074,0.8951,0.849,478,108,56,0.8157,0.8951,0.8536,0.8336,0.8914,0.8556,0.8411,0.8914,0.8597,0.1869,0,6
+whole,20,395,395,395,395,0,0,1.0,1.0,1.0,395,0,0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,0.2837,0,0

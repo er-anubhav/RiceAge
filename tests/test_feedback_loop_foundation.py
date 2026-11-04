@@ -13,7 +13,7 @@ def test_feedback_store_uses_server_cached_features_and_upserts(tmp_path):
         "predicted_label": "DISCOLORED_RICE",
         "bbox": [1, 2, 30, 12],
         "probabilities": {"discoloured": 0.71},
-        "features": {"length_px": 30.0, "solidity": 0.94},
+        "features": {"length_px": 30.0, "solidity": 0.94, "unavailable_measurement": float("nan")},
     }])
 
     first = store.record_correction(
@@ -30,7 +30,9 @@ def test_feedback_store_uses_server_cached_features_and_upserts(tmp_path):
     assert store.get_pending_count() == 1
     record = store.get_pending_records()[0]
     assert record["corrected_label"] == "BROKEN_RICE"
-    assert record["features"] == {"length_px": 30.0, "solidity": 0.94}
+    assert record["features"] == {
+        "length_px": 30.0, "solidity": 0.94, "unavailable_measurement": None
+    }
     assert store.get_scan_grains("scan-1")[0]["corrected_label"] == "BROKEN_RICE"
 
 

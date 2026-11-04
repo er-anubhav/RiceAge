@@ -42,16 +42,42 @@ def upload_file(sftp, local_path, remote_path):
     rate = (sz / (1024*1024)) / max(dt, 0.01)
     print(f" Done in {dt:.1f}s ({rate:.1f} MB/s)")
 
+def get_ssh_client():
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    print("Connecting to CM5 via SSH...")
+    
+    # Try connecting directly or binding to the Wi-Fi adapter if multiple NICs exist
+    import socket
+    sock = None
+    # Check if we can bind to the local Wi-Fi interface
+    for bind_ip in ["192.168.22.27", ""]:
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(5)
+            if bind_ip:
+                s.bind((bind_ip, 0))
+            s.connect((CM5_HOST, CM5_PORT))
+            sock = s
+            break
+        except Exception:
+            if s:
+                s.close()
+    
+    # Try key-based auth first, then password
+    try:
+        ssh.connect(CM5_HOST, port=CM5_PORT, username=CM5_USER, sock=sock, timeout=10)
+    except Exception:
+        ssh.connect(CM5_HOST, port=CM5_PORT, username=CM5_USER, password=CM5_PASS, sock=sock, timeout=10)
+    return ssh
+
 def main():
     print("=" * 70)
     print("  RICEAGE PRODUCTION PIPELINE - DEPLOYMENT TO CM5")
     print(f"  Target: {CM5_USER}@{CM5_HOST}:{CM5_PORT}")
     print("=" * 70)
 
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    print("Connecting to CM5 via SSH...")
-    ssh.connect(CM5_HOST, port=CM5_PORT, username=CM5_USER, password=CM5_PASS, timeout=10)
+    ssh = get_ssh_client()
     print("SSH Connection established.")
 
     sftp = create_sftp_client(ssh)

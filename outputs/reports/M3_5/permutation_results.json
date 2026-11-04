@@ -1,0 +1,37 @@
+{
+  "Foreign_Matter": {
+    "mean_perm_acc": 0.8173981810992487,
+    "std_perm_acc": 0.00023724792408064133,
+    "mean_perm_bal_acc": 0.49980657640232107,
+    "majority_baseline_acc": 0.8177145116646896,
+    "prevalence": 0.18228548833531039
+  },
+  "Whole_vs_Broken": {
+    "mean_perm_acc": 0.5176007866273353,
+    "std_perm_acc": 0.022917905132218336,
+    "mean_perm_bal_acc": 0.517500174036803,
+    "majority_baseline_acc": 0.5024582104228122,
+    "prevalence": 0.5024582104228122
+  },
+  "Chalky": {
+    "mean_perm_acc": 0.5340471092077087,
+    "std_perm_acc": 0.01166777963668119,
+    "mean_perm_bal_acc": 0.494535814908884,
+    "majority_baseline_acc": 0.5471092077087795,
+    "prevalence": 0.45289079229122053
+  },
+  "Discoloured": {
+    "mean_perm_acc": 0.7417151162790697,
+    "std_perm_acc": 0.0018442699913444104,
+    "mean_perm_bal_acc": 0.5000536225634902,
+    "majority_baseline_acc": 0.7427325581395349,
+    "prevalence": 0.25726744186046513
+  },
+  "Damaged": {
+    "mean_perm_acc": 0.527027027027027,
+    "std_perm_acc": 0.01590810223393036,
+    "mean_perm_bal_acc": 0.5102620399980907,
+    "majority_baseline_acc": 0.5311850311850312,
+    "prevalence": 0.4688149688149688
+  }
+}

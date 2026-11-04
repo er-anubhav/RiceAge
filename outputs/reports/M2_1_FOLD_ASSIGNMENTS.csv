@@ -1,0 +1,61 @@
+image_id,filename,category,group_id,assigned_fold,total_grains,whole_count,broken_count,is_duplicate_pair,leakage_status
+1,broken 11.jpg,broken,broken 11.jpg,1,20,0,20,False,ISOLATED_NO_LEAKAGE
+3,broken 13.jpg,broken,broken 13.jpg,1,20,0,20,False,ISOLATED_NO_LEAKAGE
+16,broken 8.jpg,broken,broken 8.jpg,1,19,0,19,False,ISOLATED_NO_LEAKAGE
+19,broken3.jpg,broken,broken3.jpg,1,20,0,20,False,ISOLATED_NO_LEAKAGE
+81,mixed 11.jpg,mixed,mixed 11.jpg,1,10,4,6,False,ISOLATED_NO_LEAKAGE
+87,mixed 17.jpg,mixed,mixed 17.jpg,1,5,5,0,False,ISOLATED_NO_LEAKAGE
+93,mixed 4.jpg,mixed,mixed 4.jpg,1,15,9,6,False,ISOLATED_NO_LEAKAGE
+97,mixed 8.jpg,mixed,mixed 8.jpg,1,15,10,5,False,ISOLATED_NO_LEAKAGE
+105,whole 11.jpg,whole,whole 11.jpg,1,20,20,0,False,ISOLATED_NO_LEAKAGE
+113,whole 19.jpg,whole,whole 19.jpg,1,19,19,0,False,ISOLATED_NO_LEAKAGE
+102,whole 4.jpg,whole,whole_4_5_dup,1,20,20,0,True,ISOLATED_NO_LEAKAGE
+103,whole 5.jpg,whole,whole_4_5_dup,1,20,20,0,True,ISOLATED_NO_LEAKAGE
+0,broken 10.jpg,broken,broken 10.jpg,2,20,0,20,False,ISOLATED_NO_LEAKAGE
+7,broken 17.jpg,broken,broken 17.jpg,2,20,0,20,False,ISOLATED_NO_LEAKAGE
+8,broken 18.jpg,broken,broken 18.jpg,2,20,0,20,False,ISOLATED_NO_LEAKAGE
+11,broken 20.jpg,broken,broken 20.jpg,2,20,0,20,False,ISOLATED_NO_LEAKAGE
+86,mixed 16.jpg,mixed,mixed 16.jpg,2,5,5,0,False,ISOLATED_NO_LEAKAGE
+91,mixed 20.jpg,mixed,mixed 20.jpg,2,14,11,3,False,ISOLATED_NO_LEAKAGE
+92,mixed 3.jpg,mixed,mixed 3.jpg,2,15,4,11,False,ISOLATED_NO_LEAKAGE
+98,mixed 9.jpg,mixed,mixed 9.jpg,2,10,4,6,False,ISOLATED_NO_LEAKAGE
+106,whole 12.jpg,whole,whole 12.jpg,2,20,20,0,False,ISOLATED_NO_LEAKAGE
+107,whole 13.jpg,whole,whole 13.jpg,2,19,19,0,False,ISOLATED_NO_LEAKAGE
+115,whole 6.jpg,whole,whole 6.jpg,2,20,20,0,False,ISOLATED_NO_LEAKAGE
+116,whole 7.jpg,whole,whole 7.jpg,2,20,20,0,False,ISOLATED_NO_LEAKAGE
+2,broken 12.jpg,broken,broken 12.jpg,3,20,0,20,False,ISOLATED_NO_LEAKAGE
+5,broken 15.jpg,broken,broken 15.jpg,3,20,0,20,False,ISOLATED_NO_LEAKAGE
+17,broken 9.jpg,broken,broken 9.jpg,3,20,0,20,False,ISOLATED_NO_LEAKAGE
+18,broken.jpg,broken,broken.jpg,3,20,0,20,False,ISOLATED_NO_LEAKAGE
+80,mixed 10.jpg,mixed,mixed 10.jpg,3,12,4,8,False,ISOLATED_NO_LEAKAGE
+83,mixed 13.jpg,mixed,mixed 13.jpg,3,10,4,6,False,ISOLATED_NO_LEAKAGE
+89,mixed 19.jpg,mixed,mixed 19.jpg,3,8,6,2,False,ISOLATED_NO_LEAKAGE
+94,mixed 5.jpg,mixed,mixed 5.jpg,3,15,9,6,False,ISOLATED_NO_LEAKAGE
+112,whole 18.jpg,whole,whole 18.jpg,3,19,19,0,False,ISOLATED_NO_LEAKAGE
+100,whole 2.jpg,whole,whole 2.jpg,3,20,20,0,False,ISOLATED_NO_LEAKAGE
+101,whole 3.jpg,whole,whole 3.jpg,3,20,20,0,False,ISOLATED_NO_LEAKAGE
+99,whole.jpg,whole,whole.jpg,3,20,20,0,False,ISOLATED_NO_LEAKAGE
+6,broken 16.jpg,broken,broken 16.jpg,4,20,0,20,False,ISOLATED_NO_LEAKAGE
+10,broken 2.jpg,broken,broken 2.jpg,4,20,0,20,False,ISOLATED_NO_LEAKAGE
+13,broken 5.jpg,broken,broken 5.jpg,4,20,0,20,False,ISOLATED_NO_LEAKAGE
+14,broken 6.jpg,broken,broken 6.jpg,4,20,0,20,False,ISOLATED_NO_LEAKAGE
+79,mixed 1.jpg,mixed,mixed 1.jpg,4,15,4,11,False,ISOLATED_NO_LEAKAGE
+82,mixed 12.jpg,mixed,mixed 12.jpg,4,11,5,6,False,ISOLATED_NO_LEAKAGE
+85,mixed 15.jpg,mixed,mixed 15.jpg,4,8,5,3,False,ISOLATED_NO_LEAKAGE
+96,mixed 7.jpg,mixed,mixed 7.jpg,4,11,5,6,False,ISOLATED_NO_LEAKAGE
+104,whole 10.jpg,whole,whole 10.jpg,4,20,20,0,False,ISOLATED_NO_LEAKAGE
+111,whole 17.jpg,whole,whole 17.jpg,4,20,20,0,False,ISOLATED_NO_LEAKAGE
+114,whole 20.jpg,whole,whole 20.jpg,4,19,19,0,False,ISOLATED_NO_LEAKAGE
+117,whole 8.jpg,whole,whole 8.jpg,4,20,20,0,False,ISOLATED_NO_LEAKAGE
+4,broken 14.jpg,broken,broken 14.jpg,5,20,0,20,False,ISOLATED_NO_LEAKAGE
+9,broken 19.jpg,broken,broken 19.jpg,5,20,0,20,False,ISOLATED_NO_LEAKAGE
+12,broken 4.jpg,broken,broken 4.jpg,5,20,0,20,False,ISOLATED_NO_LEAKAGE
+15,broken 7.jpg,broken,broken 7.jpg,5,19,0,19,False,ISOLATED_NO_LEAKAGE
+84,mixed 14.jpg,mixed,mixed 14.jpg,5,6,1,5,False,ISOLATED_NO_LEAKAGE
+88,mixed 18.jpg,mixed,mixed 18.jpg,5,10,9,1,False,ISOLATED_NO_LEAKAGE
+90,mixed 2.jpg,mixed,mixed 2.jpg,5,14,5,9,False,ISOLATED_NO_LEAKAGE
+95,mixed 6.jpg,mixed,mixed 6.jpg,5,15,7,8,False,ISOLATED_NO_LEAKAGE
+108,whole 14.jpg,whole,whole 14.jpg,5,19,19,0,False,ISOLATED_NO_LEAKAGE
+109,whole 15.jpg,whole,whole 15.jpg,5,20,20,0,False,ISOLATED_NO_LEAKAGE
+110,whole 16.jpg,whole,whole 16.jpg,5,20,20,0,False,ISOLATED_NO_LEAKAGE
+118,whole 9.jpg,whole,whole 9.jpg,5,20,20,0,False,ISOLATED_NO_LEAKAGE

@@ -157,6 +157,7 @@ def create_defects_visualization(
     defect_colors = {
         "WHOLE_RICE": (40, 200, 40),        # Vibrant Green
         "BROKEN_RICE": (0, 165, 255),       # Orange
+        "SMALL_BROKEN_RICE": (0, 100, 255),  # Crimson / Deep Orange
         "DAMAGED_RICE": (0, 0, 255),        # Red
         "CHALKY_RICE": (255, 255, 0),       # Cyan / Light Blue
         "DISCOLORED_RICE": (200, 50, 200),  # Purple

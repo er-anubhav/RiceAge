@@ -12,7 +12,7 @@ from src.preprocessing import resolve_calibration, clear_scanner_bezel, preproce
 from src.segmentation import segment_otsu, segment_yolo, compare_segmentation_methods, cleanup_mask
 from src.separation import separate_touching_grains
 from src.measurement import measure_all_grains
-from src.classification import classify_grains_rule_based, classify_grains_ai
+from src.classification import classify_grains_rule_based, classify_grains_ai, compute_quality_metrics
 from src.reporting import (
     create_segmentation_overlay,
     create_instances_visualization,
@@ -222,13 +222,15 @@ class RiceQualityPipeline:
                 original_bgr,
                 weights_path=self.config.classification.classifier_weights_path,
                 broken_length_ratio_thresh=self.config.classification.broken_length_ratio_thresh,
-                broken_aspect_ratio_thresh=self.config.classification.broken_aspect_ratio_thresh
+                broken_aspect_ratio_thresh=self.config.classification.broken_aspect_ratio_thresh,
+                pixel_scale_mm=calib.pixel_scale_mm
             )
         else:
             df_classified = classify_grains_rule_based(
                 df_measurements,
                 broken_length_ratio_thresh=self.config.classification.broken_length_ratio_thresh,
-                broken_aspect_ratio_thresh=self.config.classification.broken_aspect_ratio_thresh
+                broken_aspect_ratio_thresh=self.config.classification.broken_aspect_ratio_thresh,
+                pixel_scale_mm=calib.pixel_scale_mm
             )
 
         classified_records = df_classified.to_dict(orient="records")
@@ -237,21 +239,11 @@ class RiceQualityPipeline:
         status_counts = df_classified["separation_status"].value_counts().to_dict() if not df_classified.empty else {}
         morph_stats = self._calculate_morphology_statistics(df_classified, calib)
 
-        # ISO 7301 / Codex CXS 198-1995 Commercial Export Grade Determination
-        total_valid = len(df_classified)
-        broken_cnt = quality_counts.get("BROKEN_RICE", 0)
-        damaged_cnt = quality_counts.get("DAMAGED_RICE", 0)
-        broken_pct = round((broken_cnt / max(1, total_valid)) * 100, 2)
-        damaged_pct = round((damaged_cnt / max(1, total_valid)) * 100, 2)
-
-        if broken_pct <= 5.0 and damaged_pct <= 1.0:
-            commercial_grade = "Grade 1 (Premium Head Rice)"
-        elif broken_pct <= 15.0 and damaged_pct <= 2.0:
-            commercial_grade = "Grade 2 (Standard Commercial)"
-        elif broken_pct <= 25.0 and damaged_pct <= 4.0:
-            commercial_grade = "Grade 3 (Milling Utility Grade)"
-        else:
-            commercial_grade = "Feed / Sub-Standard Grade"
+        # ISO 7301 / Codex CXS 198-1995 & APSCSCL Specifications (Count and Mass Basis)
+        metrics = compute_quality_metrics(df_classified, pixel_scale_mm=calib.pixel_scale_mm)
+        commercial_grade = metrics["commercial_grade"]
+        count_basis = metrics["count_basis"]
+        mass_basis = metrics["mass_basis"]
 
         defect_breakdown = {}
         if "defects" in df_classified.columns:
@@ -265,6 +257,9 @@ class RiceQualityPipeline:
             "image_dimensions": {"width": img_w, "height": img_h},
             "total_grains_detected": len(df_classified),
             "commercial_grade": commercial_grade,
+            "count_basis": count_basis,
+            "mass_basis": mass_basis,
+            "total_sample_mass_g": metrics["total_mass_g"],
             "engine_mode": {
                 "segmentation": f"yolo11s-seg ({'onnx' if self.config.segmentation.yolo_weights_path.endswith('.onnx') else 'pytorch'})" if use_yolo else f"classic-{self.config.segmentation.method}",
                 "classification": f"resnet50-defect-ai ({'onnx' if self.config.classification.classifier_weights_path.endswith('.onnx') else 'pytorch'})" if use_ai else "classic-rule-based",
