@@ -145,6 +145,80 @@ def create_measurements_visualization(
     return vis
 
 
+def create_defects_visualization(
+    original_bgr: np.ndarray,
+    measurements: List[Dict[str, Any]],
+    instance_mask: np.ndarray
+) -> np.ndarray:
+    # Color-coded defect overlay: WHOLE (Green), BROKEN (Orange), DAMAGED (Red), CHALKY (Cyan), DISCOLORED (Purple), OTHER (Gold), FOREIGN (Dark Blue)
+    vis = original_bgr.copy()
+    img_h, img_w = original_bgr.shape[:2]
+
+    defect_colors = {
+        "WHOLE_RICE": (40, 200, 40),        # Vibrant Green
+        "BROKEN_RICE": (0, 165, 255),       # Orange
+        "DAMAGED_RICE": (0, 0, 255),        # Red
+        "CHALKY_RICE": (255, 255, 0),       # Cyan / Light Blue
+        "DISCOLORED_RICE": (200, 50, 200),  # Purple
+        "OTHER_GRAIN": (0, 215, 255),       # Gold / Yellow
+        "FOREIGN_MATERIAL": (180, 50, 0),   # Navy Blue
+        "BOUNDARY_TRUNCATED": (128, 128, 128), # Gray
+        "UNRESOLVED_CLUSTER": (0, 0, 180),  # Crimson
+    }
+
+    for row in measurements:
+        gid = row["grain_id"]
+        q_class = row.get("quality_class", "WHOLE_RICE")
+        color = defect_colors.get(q_class, (40, 200, 40))
+
+        # Local ROI crop for contour finding (fast)
+        x = int(row.get("x", row.get("bbox_x", 0)))
+        y = int(row.get("y", row.get("bbox_y", 0)))
+        w = int(row.get("width", row.get("bbox_w", 0)))
+        h = int(row.get("height", row.get("bbox_h", 0)))
+        pad = 2
+        x1 = max(0, x - pad)
+        y1 = max(0, y - pad)
+        x2 = min(img_w, x + w + pad)
+        y2 = min(img_h, y + h + pad)
+
+        sub_mask = (instance_mask[y1:y2, x1:x2] == gid).astype(np.uint8)
+        cnts, _ = cv2.findContours(sub_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if cnts:
+            c = cnts[0] + np.array([[[x1, y1]]], dtype=np.int32)
+            cv2.drawContours(vis, [c], -1, color, 2)
+
+        cx = int(round(row.get("centroid_x", x + w / 2)))
+        cy = int(round(row.get("centroid_y", y + h / 2)))
+
+        # ID tag with shadow
+        cv2.putText(vis, str(gid), (cx + 3, cy - 3), cv2.FONT_HERSHEY_SIMPLEX, 0.28, (0, 0, 0), 2, cv2.LINE_AA)
+        cv2.putText(vis, str(gid), (cx + 3, cy - 3), cv2.FONT_HERSHEY_SIMPLEX, 0.28, (255, 255, 255), 1, cv2.LINE_AA)
+
+    # Defect Legend
+    legend_items = [
+        ("Sound Whole Rice", defect_colors["WHOLE_RICE"]),
+        ("Broken Rice (<75%)", defect_colors["BROKEN_RICE"]),
+        ("Damaged / Peck Rice", defect_colors["DAMAGED_RICE"]),
+        ("Chalky Rice", defect_colors["CHALKY_RICE"]),
+        ("Discoloured Rice", defect_colors["DISCOLORED_RICE"]),
+        ("Other / Dehusked", defect_colors["OTHER_GRAIN"]),
+        ("Foreign Material", defect_colors["FOREIGN_MATERIAL"]),
+    ]
+
+    leg_h = 24 + len(legend_items) * 20
+    cv2.rectangle(vis, (15, 15), (280, 15 + leg_h), (20, 20, 20), -1)
+    cv2.rectangle(vis, (15, 15), (280, 15 + leg_h), (100, 100, 100), 1)
+    cv2.putText(vis, "AI Quality / Defect Grading", (25, 33), cv2.FONT_HERSHEY_SIMPLEX, 0.40, (255, 255, 255), 1, cv2.LINE_AA)
+
+    for idx, (text, col) in enumerate(legend_items):
+        ly = 54 + idx * 20
+        cv2.rectangle(vis, (25, ly - 8), (42, ly + 4), col, -1)
+        cv2.putText(vis, text, (50, ly + 2), cv2.FONT_HERSHEY_SIMPLEX, 0.34, (220, 220, 220), 1, cv2.LINE_AA)
+
+    return vis
+
+
 def save_visualization(image: np.ndarray, output_path: str) -> None:
     # Save visualization image ensuring parent directory exists.
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
@@ -348,12 +422,18 @@ def generate_experiment_report(
 | **Circularity** | {stats.get("circularity_mean", 0):.3f} ± {stats.get("circularity_std", 0):.3f} | {stats.get("circularity_median", 0):.3f} | {stats.get("circularity_min", 0):.3f} | {stats.get("circularity_max", 0):.3f} |
 | **Solidity** | {stats.get("solidity_mean", 0):.3f} ± {stats.get("solidity_std", 0):.3f} | {stats.get("solidity_median", 0):.3f} | {stats.get("solidity_min", 0):.3f} | {stats.get("solidity_max", 0):.3f} |
 
-### Quality Categorization (International Standard Codex CXS 198-1995)
+### Quality Categorization (International Standard Codex CXS 198-1995 & ISO 7301)
 
-- **Whole Rice:** {quality_counts.get("WHOLE_RICE", 0)} ({quality_counts.get("WHOLE_RICE", 0) / max(1, len(df)) * 100:.1f}%)
+- **Sound Whole Rice:** {quality_counts.get("WHOLE_RICE", 0)} ({quality_counts.get("WHOLE_RICE", 0) / max(1, len(df)) * 100:.1f}%)
 - **Broken Rice (<75% whole grain median length):** {quality_counts.get("BROKEN_RICE", 0)} ({quality_counts.get("BROKEN_RICE", 0) / max(1, len(df)) * 100:.1f}%)
 - **Boundary Truncated Grains:** {quality_counts.get("BOUNDARY_TRUNCATED", 0)}
 - **Unresolved Clusters:** {quality_counts.get("UNRESOLVED_CLUSTER", 0)}
+- **Damaged / Insect Damaged:** {quality_counts.get("DAMAGED_RICE", 0)} ({quality_counts.get("DAMAGED_RICE", 0) / max(1, len(df)) * 100:.1f}%)
+- **Chalky Endosperm Kernels:** {quality_counts.get("CHALKY_RICE", 0)} ({quality_counts.get("CHALKY_RICE", 0) / max(1, len(df)) * 100:.1f}%)
+- **Discoloured / Amber Kernels:** {quality_counts.get("DISCOLORED_RICE", 0)} ({quality_counts.get("DISCOLORED_RICE", 0) / max(1, len(df)) * 100:.1f}%)
+- **Other Grain / Dehusked Paddy:** {quality_counts.get("OTHER_GRAIN", 0)} ({quality_counts.get("OTHER_GRAIN", 0) / max(1, len(df)) * 100:.1f}%)
+- **Foreign Material:** {quality_counts.get("FOREIGN_MATERIAL", 0)} ({quality_counts.get("FOREIGN_MATERIAL", 0) / max(1, len(df)) * 100:.1f}%)
+- **Commercial Quality Grade:** **{summary.get("commercial_grade", "Standard Commercial")}**
 
 ---
 

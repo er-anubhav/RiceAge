@@ -9,14 +9,15 @@ import cv2
 
 from configs.default_config import PipelineConfig
 from src.preprocessing import resolve_calibration, clear_scanner_bezel, preprocess_image
-from src.segmentation import segment_otsu, compare_segmentation_methods, cleanup_mask
+from src.segmentation import segment_otsu, segment_yolo, compare_segmentation_methods, cleanup_mask
 from src.separation import separate_touching_grains
 from src.measurement import measure_all_grains
-from src.classification import classify_grains_rule_based
+from src.classification import classify_grains_rule_based, classify_grains_ai
 from src.reporting import (
     create_segmentation_overlay,
     create_instances_visualization,
     create_measurements_visualization,
+    create_defects_visualization,
     save_visualization,
     export_crops_and_masks,
     export_measurements_csv,
@@ -75,26 +76,26 @@ class RiceQualityPipeline:
     ) -> None:
         cfg = self.config.export
 
-        # visualizer.save_visualization: persist rendered image matrix to disk
+        # visualizer.save_visualization: persist original rendered image matrix to disk
         save_visualization(original_bgr, os.path.join(cfg.visualizations_dir, "original.jpg"))
 
-        # visualizer.create_segmentation_overlay: generate semi-transparent green mask overlay on original image
+        # visualizer.create_segmentation_overlay: generate semi-transparent mask overlay on original image
         seg_overlay = create_segmentation_overlay(original_bgr, clean_mask)
-        # visualizer.save_visualization: persist rendered image matrix to disk
         save_visualization(seg_overlay, os.path.join(cfg.visualizations_dir, "segmentation.jpg"))
 
         # visualizer.create_instances_visualization: render pseudo-color instance segmentation map with grain IDs
         inst_vis = create_instances_visualization(original_bgr, instance_mask, classified_records)
-        # visualizer.save_visualization: persist rendered image matrix to disk
         save_visualization(inst_vis, os.path.join(cfg.visualizations_dir, "instances.jpg"))
 
         # visualizer.create_measurements_visualization: overlay oriented bounding boxes and measurement tags on grains
         meas_vis = create_measurements_visualization(original_bgr, classified_records, instance_mask)
-        # visualizer.save_visualization: persist rendered image matrix to disk
         save_visualization(meas_vis, os.path.join(cfg.visualizations_dir, "measurements.jpg"))
 
+        # visualizer.create_defects_visualization: render color-coded defect overlay (Whole, Broken, Damaged, Chalky, etc.)
+        defect_vis = create_defects_visualization(original_bgr, classified_records, instance_mask)
+        save_visualization(defect_vis, os.path.join(cfg.visualizations_dir, "defects.jpg"))
+
         if cfg.save_crops or cfg.save_masks:
-            # exporter.export_crops_and_masks: export individual grain bounding box image crops and binary masks
             export_crops_and_masks(
                 original_bgr=original_bgr,
                 instance_mask=instance_mask,
@@ -109,7 +110,8 @@ class RiceQualityPipeline:
         # exporter.export_summary_json: save aggregated run metrics and counts to a JSON summary file
         export_summary_json(summary, os.path.join(cfg.output_dir, "summary.json"))
         # report_generator.generate_experiment_report: compile summary and statistics into markdown experiment report
-        generate_experiment_report(summary, df_classified, os.path.join(cfg.reports_dir, "M0_BASELINE_REPORT.md"))
+        report_name = "M1_AI_REPORT.md" if self.config.classification.use_ai_classifier else "M0_BASELINE_REPORT.md"
+        generate_experiment_report(summary, df_classified, os.path.join(cfg.reports_dir, report_name))
 
     def run(
         self,
@@ -144,37 +146,61 @@ class RiceQualityPipeline:
 
         spatial_params = self._scale_spatial_parameters(img_h, img_w)
 
-        # denoise.preprocess_image: convert image to grayscale and apply Gaussian filter smoothing
-        _, smoothed = preprocess_image(
-            cleaned_bgr,
-            gaussian_kernel=spatial_params["ksize"],
-            gaussian_sigma=self.config.preprocessing.gaussian_sigma
+        # Stage 1: Segmentation Engine Selection (YOLO Deep Learning vs Classic Watershed)
+        use_yolo = (
+            self.config.segmentation.engine == "yolo" and
+            os.path.exists(self.config.segmentation.yolo_weights_path)
         )
 
-        # binarize.compare_segmentation_methods: benchmark Otsu against adaptive, triangle, Yen, and Li algorithms
-        seg_comparison = compare_segmentation_methods(smoothed)
-        # binarize.segment_otsu: binarize smoothed grayscale image using Otsu global optimal thresholding
-        binary_raw, otsu_val = segment_otsu(smoothed)
+        if use_yolo:
+            instance_mask, clean_mask, grain_diagnostics, separation_stats = segment_yolo(
+                cleaned_bgr,
+                weights_path=self.config.segmentation.yolo_weights_path,
+                conf_threshold=0.25,
+                imgsz=1280,
+                max_det=2000
+            )
+            otsu_val = 0.0
+            seg_comparison = {
+                "yolo11s_seg": {
+                    "threshold_value": 0.0,
+                    "foreground_ratio": float(np.mean(clean_mask > 0)),
+                    "raw_connected_components": len(grain_diagnostics),
+                    "edge_gradient_magnitude": 0.0
+                }
+            }
+        else:
+            # denoise.preprocess_image: convert image to grayscale and apply Gaussian filter smoothing
+            _, smoothed = preprocess_image(
+                cleaned_bgr,
+                gaussian_kernel=spatial_params["ksize"],
+                gaussian_sigma=self.config.preprocessing.gaussian_sigma
+            )
 
-        # morphology.cleanup_mask: perform binary hole-filling, morphological opening, and small-noise removal
-        clean_mask = cleanup_mask(
-            binary_raw,
-            kernel_size=self.config.segmentation.morph_kernel_size,
-            min_area_px=spatial_params["min_obj_area"],
-            fill_holes=self.config.segmentation.fill_holes
-        )
+            # binarize.compare_segmentation_methods: benchmark Otsu against adaptive, triangle, Yen, and Li algorithms
+            seg_comparison = compare_segmentation_methods(smoothed)
+            # binarize.segment_otsu: binarize smoothed grayscale image using Otsu global optimal thresholding
+            binary_raw, otsu_val = segment_otsu(smoothed)
 
-        # separation.separate_touching_grains: separate clustered and touching grains via distance-transform watershed
-        instance_mask, grain_diagnostics, separation_stats = separate_touching_grains(
-            clean_mask,
-            min_peak_distance_px=spatial_params["min_peak_dist"],
-            peak_threshold_rel=self.config.separation.peak_threshold_rel,
-            cluster_area_thresh_px=spatial_params["cluster_area_thresh"],
-            solidity_thresh=self.config.separation.solidity_threshold,
-            min_valid_area_px=spatial_params["min_valid_area"]
-        )
+            # morphology.cleanup_mask: perform binary hole-filling, morphological opening, and small-noise removal
+            clean_mask = cleanup_mask(
+                binary_raw,
+                kernel_size=self.config.segmentation.morph_kernel_size,
+                min_area_px=spatial_params["min_obj_area"],
+                fill_holes=self.config.segmentation.fill_holes
+            )
 
-        # measurement.measure_all_grains: compute morphology dimensions (length, width, area) and RGB/HSV color metrics
+            # separation.separate_touching_grains: separate clustered and touching grains via distance-transform watershed
+            instance_mask, grain_diagnostics, separation_stats = separate_touching_grains(
+                clean_mask,
+                min_peak_distance_px=spatial_params["min_peak_dist"],
+                peak_threshold_rel=self.config.separation.peak_threshold_rel,
+                cluster_area_thresh_px=spatial_params["cluster_area_thresh"],
+                solidity_thresh=self.config.separation.solidity_threshold,
+                min_valid_area_px=spatial_params["min_valid_area"]
+            )
+
+        # Stage 2: Measurement & Feature Extraction
         df_measurements, _ = measure_all_grains(
             instance_mask=instance_mask,
             image_rgb=original_rgb,
@@ -184,23 +210,66 @@ class RiceQualityPipeline:
             min_area_px=spatial_params["min_valid_area"]
         )
 
-        # classification.rule_based.classify_grains_rule_based: assign quality classes (WHOLE/BROKEN/CLUSTER) using Codex/USDA rules
-        df_classified = classify_grains_rule_based(
-            df_measurements,
-            broken_length_ratio_thresh=self.config.classification.broken_length_ratio_thresh,
-            broken_aspect_ratio_thresh=self.config.classification.broken_aspect_ratio_thresh
+        # Stage 3: Classification Engine Selection (AI ResNet-50 vs Rule-Based Morphology)
+        use_ai = (
+            self.config.classification.use_ai_classifier and
+            os.path.exists(self.config.classification.classifier_weights_path)
         )
+
+        if use_ai:
+            df_classified = classify_grains_ai(
+                df_measurements,
+                original_bgr,
+                weights_path=self.config.classification.classifier_weights_path,
+                broken_length_ratio_thresh=self.config.classification.broken_length_ratio_thresh,
+                broken_aspect_ratio_thresh=self.config.classification.broken_aspect_ratio_thresh
+            )
+        else:
+            df_classified = classify_grains_rule_based(
+                df_measurements,
+                broken_length_ratio_thresh=self.config.classification.broken_length_ratio_thresh,
+                broken_aspect_ratio_thresh=self.config.classification.broken_aspect_ratio_thresh
+            )
+
         classified_records = df_classified.to_dict(orient="records")
 
         quality_counts = df_classified["quality_class"].value_counts().to_dict() if not df_classified.empty else {}
         status_counts = df_classified["separation_status"].value_counts().to_dict() if not df_classified.empty else {}
         morph_stats = self._calculate_morphology_statistics(df_classified, calib)
 
+        # ISO 7301 / Codex CXS 198-1995 Commercial Export Grade Determination
+        total_valid = len(df_classified)
+        broken_cnt = quality_counts.get("BROKEN_RICE", 0)
+        damaged_cnt = quality_counts.get("DAMAGED_RICE", 0)
+        broken_pct = round((broken_cnt / max(1, total_valid)) * 100, 2)
+        damaged_pct = round((damaged_cnt / max(1, total_valid)) * 100, 2)
+
+        if broken_pct <= 5.0 and damaged_pct <= 1.0:
+            commercial_grade = "Grade 1 (Premium Head Rice)"
+        elif broken_pct <= 15.0 and damaged_pct <= 2.0:
+            commercial_grade = "Grade 2 (Standard Commercial)"
+        elif broken_pct <= 25.0 and damaged_pct <= 4.0:
+            commercial_grade = "Grade 3 (Milling Utility Grade)"
+        else:
+            commercial_grade = "Feed / Sub-Standard Grade"
+
+        defect_breakdown = {}
+        if "defects" in df_classified.columns:
+            for dlist in df_classified["defects"]:
+                for d in dlist:
+                    defect_breakdown[d] = defect_breakdown.get(d, 0) + 1
+
         summary = {
             "timestamp": timestamp,
             "image_path": image_path,
             "image_dimensions": {"width": img_w, "height": img_h},
             "total_grains_detected": len(df_classified),
+            "commercial_grade": commercial_grade,
+            "engine_mode": {
+                "segmentation": f"yolo11s-seg ({'onnx' if self.config.segmentation.yolo_weights_path.endswith('.onnx') else 'pytorch'})" if use_yolo else f"classic-{self.config.segmentation.method}",
+                "classification": f"resnet50-defect-ai ({'onnx' if self.config.classification.classifier_weights_path.endswith('.onnx') else 'pytorch'})" if use_ai else "classic-rule-based",
+                "runtime": "onnxruntime" if (self.config.segmentation.yolo_weights_path.endswith(".onnx") or self.config.classification.classifier_weights_path.endswith(".onnx")) else "pytorch"
+            },
             "calibration": {
                 "is_verified": calib.is_verified,
                 "effective_dpi": calib.effective_dpi,
@@ -210,7 +279,7 @@ class RiceQualityPipeline:
             },
             "preprocessing": {"cleared_margins": cleared_margins},
             "segmentation": {
-                "selected_method": "otsu",
+                "selected_method": "yolo11s_seg" if use_yolo else "otsu",
                 "selected_threshold_val": otsu_val,
                 "method_comparison": {
                     k: {
@@ -224,6 +293,7 @@ class RiceQualityPipeline:
             },
             "separation": separation_stats,
             "quality_counts": quality_counts,
+            "defect_breakdown": defect_breakdown,
             "status_counts": status_counts,
             "morphology_statistics": morph_stats,
         }
@@ -244,4 +314,3 @@ class RiceQualityPipeline:
             "instance_mask": instance_mask,
             "clean_mask": clean_mask,
         }
-
