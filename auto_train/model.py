@@ -119,6 +119,13 @@ def load_reconciled_checkpoint(model: nn.Module, checkpoint_path: str, device: t
     Verifies state dict keys against model architecture.
     """
     state_dict = torch.load(checkpoint_path, map_location=device)
+    if isinstance(state_dict, dict):
+        if 'teacher_state' in state_dict:
+            state_dict = state_dict['teacher_state']
+        elif 'student_state' in state_dict:
+            state_dict = state_dict['student_state']
+        elif 'state_dict' in state_dict:
+            state_dict = state_dict['state_dict']
     
     # Check key reconciliation
     model_keys = set(model.state_dict().keys())

@@ -9,6 +9,169 @@ from scipy import ndimage as ndi
 
 _CACHED_YOLO = None
 _CACHED_YOLO_PATH = None
+_CACHED_YOLO_ONNX_SESS = None
+_CACHED_YOLO_ONNX_PATH = None
+
+
+def _letterbox(im: np.ndarray, new_shape=(1280, 1280), color=(114, 114, 114)):
+    shape = im.shape[:2]
+    r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
+    new_unpad = (int(round(shape[1] * r)), int(round(shape[0] * r)))
+    dw, dh = (new_shape[1] - new_unpad[0]) / 2, (new_shape[0] - new_unpad[1]) / 2
+
+    if shape[::-1] != new_unpad:
+        im = cv2.resize(im, new_unpad, interpolation=cv2.INTER_LINEAR)
+    top, bottom = int(round(dh - 0.1)), int(round(dh + 0.1))
+    left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
+    im = cv2.copyMakeBorder(im, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)
+    return im, r, (dw, dh)
+
+
+def _sigmoid(x: np.ndarray) -> np.ndarray:
+    return 1.0 / (1.0 + np.exp(-x))
+
+
+def _segment_yolo_onnx(
+    image_bgr: np.ndarray,
+    weights_path: str,
+    conf_threshold: float = 0.25,
+    imgsz: int = 1280,
+    max_det: int = 2000
+) -> Tuple[np.ndarray, np.ndarray, Dict[int, Dict[str, Any]], Dict[str, Any]]:
+    global _CACHED_YOLO_ONNX_SESS, _CACHED_YOLO_ONNX_PATH
+    import onnxruntime as ort
+
+    if not os.path.exists(weights_path):
+        raise FileNotFoundError(f"YOLO segmentation ONNX weights not found: {weights_path}")
+
+    if _CACHED_YOLO_ONNX_SESS is None or _CACHED_YOLO_ONNX_PATH != weights_path:
+        opts = ort.SessionOptions()
+        opts.intra_op_num_threads = 4
+        available = ort.get_available_providers()
+        providers = [p for p in ["DmlExecutionProvider", "CPUExecutionProvider"] if p in available]
+        if not providers:
+            providers = ["CPUExecutionProvider"]
+        _CACHED_YOLO_ONNX_SESS = ort.InferenceSession(weights_path, sess_options=opts, providers=providers)
+        _CACHED_YOLO_ONNX_PATH = weights_path
+
+    sess = _CACHED_YOLO_ONNX_SESS
+    h0, w0 = image_bgr.shape[:2]
+    im, r, (dw, dh) = _letterbox(image_bgr, (imgsz, imgsz))
+    blob = cv2.cvtColor(im, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
+    blob = np.transpose(blob, (2, 0, 1))[None, ...]
+
+    out0, out1 = sess.run(None, {"images": blob})
+    preds = np.transpose(out0[0], (1, 0))  # [33600, 43]
+    protos = out1[0]  # [32, 320, 320]
+
+    boxes = preds[:, :4]
+    scores = preds[:, 4:11]
+    mask_coeffs = preds[:, 11:]
+
+    confs = np.max(scores, axis=1)
+    valid = confs >= conf_threshold
+    boxes = boxes[valid]
+    confs = confs[valid]
+    mask_coeffs = mask_coeffs[valid]
+
+    raw_instance_mask = np.zeros((h0, w0), dtype=np.int32)
+    clean_mask = np.zeros((h0, w0), dtype=np.uint8)
+    temp_diagnostics: Dict[int, Dict[str, Any]] = {}
+
+    if len(boxes) > 0:
+        x1 = boxes[:, 0] - boxes[:, 2] / 2
+        y1 = boxes[:, 1] - boxes[:, 3] / 2
+        bw = boxes[:, 2]
+        bh = boxes[:, 3]
+        nms_boxes = [[int(x1[i]), int(y1[i]), int(bw[i]), int(bh[i])] for i in range(len(boxes))]
+        indices = cv2.dnn.NMSBoxes(nms_boxes, confs.tolist(), conf_threshold, 0.45)
+
+        if len(indices) > 0:
+            indices = np.array(indices).flatten()
+            if max_det and len(indices) > max_det:
+                indices = indices[:max_det]
+
+            selected_coeffs = mask_coeffs[indices]
+            selected_boxes = boxes[indices]
+            selected_confs = confs[indices]
+
+            proto_flat = protos.reshape(32, -1)
+            masks = _sigmoid(np.matmul(selected_coeffs, proto_flat)).reshape(-1, 320, 320)
+            proto_scale = imgsz / 320.0
+
+            draw_id = 1
+            for i in range(len(indices)):
+                px1 = max(0, int((selected_boxes[i, 0] - selected_boxes[i, 2] / 2) / proto_scale))
+                py1 = max(0, int((selected_boxes[i, 1] - selected_boxes[i, 3] / 2) / proto_scale))
+                px2 = min(320, int((selected_boxes[i, 0] + selected_boxes[i, 2] / 2) / proto_scale) + 1)
+                py2 = min(320, int((selected_boxes[i, 1] + selected_boxes[i, 3] / 2) / proto_scale) + 1)
+
+                if px2 <= px1 or py2 <= py1:
+                    continue
+
+                m_crop = masks[i, py1:py2, px1:px2]
+                orig_x1 = max(0, int(round((px1 * proto_scale - dw) / r)))
+                orig_y1 = max(0, int(round((py1 * proto_scale - dh) / r)))
+                orig_x2 = min(w0, int(round((px2 * proto_scale - dw) / r)))
+                orig_y2 = min(h0, int(round((py2 * proto_scale - dh) / r)))
+
+                if orig_x2 <= orig_x1 or orig_y2 <= orig_y1:
+                    continue
+
+                m_resized = cv2.resize(m_crop, (orig_x2 - orig_x1, orig_y2 - orig_y1), interpolation=cv2.INTER_LINEAR)
+                bin_mask = m_resized > 0.5
+                area = int(np.sum(bin_mask))
+                if area < 20:
+                    continue
+
+                cnts, _ = cv2.findContours(bin_mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                solidity = 1.0
+                if cnts:
+                    hull = cv2.convexHull(cnts[0])
+                    ha = cv2.contourArea(hull)
+                    solidity = float(area / ha) if ha > 0 else 1.0
+
+                raw_instance_mask[orig_y1:orig_y2, orig_x1:orig_x2][bin_mask] = draw_id
+                clean_mask[orig_y1:orig_y2, orig_x1:orig_x2][bin_mask] = 255
+
+                temp_diagnostics[draw_id] = {
+                    "status": "isolated_single",
+                    "parent_component_id": draw_id,
+                    "solidity": round(solidity, 3),
+                    "component_area": area,
+                    "was_split": False,
+                    "yolo_conf": round(float(selected_confs[i]), 3)
+                }
+                draw_id += 1
+
+    surviving_ids = np.unique(raw_instance_mask)
+    surviving_ids = surviving_ids[surviving_ids > 0]
+    max_val = int(raw_instance_mask.max()) if len(surviving_ids) > 0 else 0
+    lut = np.zeros(max_val + 1, dtype=np.int32)
+    grain_diagnostics: Dict[int, Dict[str, Any]] = {}
+
+    for new_id, old_id in enumerate(surviving_ids, start=1):
+        lut[old_id] = new_id
+        diag = temp_diagnostics[old_id]
+        diag["parent_component_id"] = new_id
+        grain_diagnostics[new_id] = diag
+
+    instance_mask = lut[raw_instance_mask]
+    total_grains = len(grain_diagnostics)
+
+    separation_stats = {
+        "engine": "yolo11s-seg",
+        "raw_connected_components": total_grains,
+        "total_detected_grains": total_grains,
+        "isolated_single_grains": total_grains,
+        "clusters_detected": 0,
+        "clusters_successfully_split": 0,
+        "clusters_unresolved": 0,
+        "grains_derived_from_clusters": 0,
+        "fragments_count": 0,
+    }
+
+    return instance_mask, clean_mask, grain_diagnostics, separation_stats
 
 
 def segment_yolo(
@@ -20,11 +183,18 @@ def segment_yolo(
     device: Optional[str] = None
 ) -> Tuple[np.ndarray, np.ndarray, Dict[int, Dict[str, Any]], Dict[str, Any]]:
     # Perform instance segmentation using trained YOLO11s-seg model.
+    # Automatically routes to pure ONNX engine when weights are .onnx or ultralytics is not available.
+    if weights_path.endswith(".onnx"):
+        return _segment_yolo_onnx(image_bgr, weights_path, conf_threshold, imgsz, max_det)
+
     global _CACHED_YOLO, _CACHED_YOLO_PATH
     try:
         from ultralytics import YOLO
     except ImportError as e:
-        raise ImportError("ultralytics package is required for YOLO segmentation engine.") from e
+        onnx_alt = weights_path.replace(".pt", ".onnx")
+        if os.path.exists(onnx_alt):
+            return _segment_yolo_onnx(image_bgr, onnx_alt, conf_threshold, imgsz, max_det)
+        raise ImportError("ultralytics package is required for YOLO PyTorch weights, but not installed.") from e
 
     if not os.path.exists(weights_path):
         raise FileNotFoundError(f"YOLO segmentation weights not found: {weights_path}")
@@ -37,8 +207,11 @@ def segment_yolo(
         if weights_path.endswith(".onnx"):
             device = "cpu"
         else:
-            import torch
-            device = 0 if torch.cuda.is_available() else "cpu"
+            try:
+                import torch
+                device = 0 if torch.cuda.is_available() else "cpu"
+            except ImportError:
+                device = "cpu"
 
     results = _CACHED_YOLO.predict(
         source=image_bgr,
@@ -48,6 +221,7 @@ def segment_yolo(
         device=device,
         verbose=False
     )
+
     res = results[0]
 
     img_h, img_w = image_bgr.shape[:2]

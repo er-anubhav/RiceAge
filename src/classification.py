@@ -6,9 +6,17 @@ from typing import Dict, Any, List, Optional
 import pandas as pd
 import numpy as np
 import cv2
-import torch
-import torch.nn as nn
-from torchvision import transforms, models
+try:
+    import torch
+    import torch.nn as nn
+    from torchvision import transforms, models
+    _TORCH_AVAILABLE = True
+except ImportError:
+    torch = None
+    nn = None
+    transforms = None
+    models = None
+    _TORCH_AVAILABLE = False
 
 
 class RealDataTaxonomy(str, Enum):
@@ -71,6 +79,8 @@ def _get_onnx_session(onnx_path: str):
 
 def _get_classifier_model(weights_path: str, device_str: Optional[str] = None):
     global _CACHED_RESNET, _CACHED_DEVICE
+    if not _TORCH_AVAILABLE:
+        return None, None
     device = torch.device(device_str if device_str else ("cuda:0" if torch.cuda.is_available() else "cpu"))
 
     if _CACHED_RESNET is not None and _CACHED_DEVICE == device:
@@ -141,7 +151,7 @@ def classify_grains_ai(
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    ]) if not is_onnx else None
+    ]) if (_TORCH_AVAILABLE and not is_onnx) else None
 
     # Reference unbroken length
     unbroken_candidates = df[

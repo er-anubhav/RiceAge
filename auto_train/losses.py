@@ -45,18 +45,19 @@ class NonNegativePULoss(nn.Module):
         loss_p_pos = -torch.log(probs[pos_mask] + 1e-7).mean()
         loss_p_neg = -torch.log(1.0 - probs[pos_mask] + 1e-7).mean()
         
+        pos_risk = self.prior * loss_p_pos
         if not unl_mask.any():
             # Batch has positives but no unlabelled instances
-            pu_loss = self.prior * loss_p_pos
+            pu_loss = pos_risk
         else:
             loss_u_neg = -torch.log(1.0 - probs[unl_mask] + 1e-7).mean()
             neg_risk = loss_u_neg - self.prior * loss_p_neg
             
             if neg_risk >= 0:
-                pu_loss = self.prior * loss_p_pos + neg_risk
+                pu_loss = pos_risk + neg_risk
             else:
-                # Corrective slack penalty when negative risk becomes sub-zero
-                pu_loss = -self.beta * neg_risk
+                # Corrective slack penalty when negative risk becomes sub-zero (Kiryo et al. 2017)
+                pu_loss = pos_risk - self.beta * neg_risk
                 
         loss_components.append(pu_loss)
         return sum(loss_components)

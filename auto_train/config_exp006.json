@@ -1,0 +1,73 @@
+{
+  "experiment_name": "EXP_006_TARGETED_DEFECT_IMPROVEMENT",
+  "description": "Targeted defect improvement initialized from EXP005 teacher checkpoint. Frozen identity/integrity heads, conservative backbone learning rate (5e-6), defect head learning rate (3e-5), positive-only pseudo-labeling, corrected non-negative PU loss with positive risk preservation, multi-gate validation tracking.",
+  "paths": {
+    "project_root": "c:/Users/NewGen/Documents/RiceCropAnalyzer",
+    "crop_root": "dataset/crops",
+    "manifest_path": "outputs/phase2_automated/automated_dataset_manifest.csv",
+    "crosswalk_path": "outputs/phase1_2_final_audit/canonical_id_crosswalk.csv",
+    "base_checkpoint_path": "outputs/phase2_automated/experiments/exp005_targeted_improvement/latest_training_state.pt",
+    "output_dir": "outputs/phase2_automated/experiments/exp006_targeted_defect_improvement"
+  },
+  "model": {
+    "backbone": "resnet50",
+    "num_heads": 5,
+    "input_size": [128, 128],
+    "normalization": {
+      "mean": [0.485, 0.456, 0.406],
+      "std": [0.229, 0.224, 0.225]
+    }
+  },
+  "training": {
+    "seed": 42,
+    "batch_size": 64,
+    "learning_rate": 3e-5,
+    "backbone_lr": 5e-6,
+    "heads_lr": 3e-5,
+    "freeze_identity_integrity": true,
+    "weight_decay": 0.01,
+    "epochs": 5,
+    "ema_decay": 0.999,
+    "num_workers": 2,
+    "pin_memory": true,
+    "pseudo_label_refresh_epochs": 2
+  },
+  "pu_learning": {
+    "priors": {
+      "damaged": 0.2650,
+      "chalky": 0.1250,
+      "discoloured": 0.0420
+    },
+    "beta_slack": 0.0
+  },
+  "pseudo_labeling": {
+    "enabled": true,
+    "allow_pseudo_negatives": false,
+    "tta_views": 3,
+    "variance_threshold": 0.010,
+    "thresholds": {
+      "damaged": {
+        "pos": 0.90,
+        "neg": null
+      },
+      "chalky": {
+        "pos": 0.92,
+        "neg": null
+      },
+      "discoloured": {
+        "pos": 0.80,
+        "neg": null
+      }
+    },
+    "max_pseudo_label_fraction": 0.08
+  },
+  "supervised_weights": {
+    "identity_pos_weight": 46.6,
+    "integrity_pos_weight": 8.85
+  },
+  "validation": {
+    "scan_cv_guardrail_multiplier": 1.25,
+    "scan_cv_absolute_threshold": null,
+    "min_val_improvement": 0.001
+  }
+}

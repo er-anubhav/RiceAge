@@ -53,7 +53,7 @@ runs/
 latest_training_state.pt
 best_*.pt
 
-# Scratch & Logs
+# Outputs & Scratch
+outputs/
 *.log
 .scratch/
-
