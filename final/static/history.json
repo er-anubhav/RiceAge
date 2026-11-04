@@ -1,0 +1,1612 @@
+[
+  {
+    "status": "Complete",
+    "timestamp": 1793713752,
+    "timestamp_str": "03/11/2026 19:19:17",
+    "image": "scan_1793713752.jpg",
+    "serial": "Sample-0014",
+    "live_step": "Analysis Complete",
+    "commodity": "Raw Rice",
+    "total_objects": 1605,
+    "total_grains": 1566,
+    "total_foreign_matter": 39,
+    "avg_length_mm": 11.861,
+    "avg_breadth_mm": 6.172,
+    "disposition": "SUBSTANDARD",
+    "stats": [
+      {
+        "param": "Good Grains",
+        "count": 180,
+        "pct": 11.49,
+        "limit": "-"
+      },
+      {
+        "param": "Brokens*",
+        "count": 18,
+        "pct": 1.15,
+        "limit": "15.00"
+      },
+      {
+        "param": "Foreign Matter",
+        "count": 39,
+        "pct": 2.43,
+        "limit": "0.00"
+      },
+      {
+        "param": "Damaged/Discoloured",
+        "count": 1368,
+        "pct": 87.36,
+        "limit": "1.50"
+      },
+      {
+        "param": "Chalky Grains",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "1.00"
+      },
+      {
+        "param": "Red Grains",
+        "count": 2,
+        "pct": 0.13,
+        "limit": "3.00"
+      },
+      {
+        "param": "Dehusked Grains",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "10.00"
+      }
+    ],
+    "rows": [
+      {
+        "name": "Whole Grains (Head Rice)",
+        "denominator": "count(Whole) / total_rice_grains",
+        "limit": "Min 80.0%",
+        "resultPct": "11.49%",
+        "resultCountAndGms": "180 grains (2.24 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Broken Grains",
+        "denominator": "count(Broken) / total_rice_grains",
+        "limit": "Max 15.0%",
+        "resultPct": "1.15%",
+        "resultCountAndGms": "18 grains (0.22 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Chalky Grains",
+        "denominator": "count(Chalky >= 50%) / total_rice_grains",
+        "limit": "Max 3.0%",
+        "resultPct": "0.00%",
+        "resultCountAndGms": "0 grains (0.00 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Damaged Grains",
+        "denominator": "count(Insect/Cavitation) / total_rice_grains",
+        "limit": "Max 2.0%",
+        "resultPct": "87.23%",
+        "resultCountAndGms": "1366 grains (17.02 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Discoloured Grains",
+        "denominator": "count(Peck/Heat) / total_rice_grains",
+        "limit": "Max 1.0%",
+        "resultPct": "0.13%",
+        "resultCountAndGms": "2 grains (0.02 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Foreign Matter",
+        "denominator": "total_foreign_matter / total_detected_objects",
+        "limit": "Max 0.5%",
+        "resultPct": "2.43%",
+        "resultCountAndGms": "39 particles (0.49 gms)",
+        "status": "substandard"
+      }
+    ],
+    "whole_count": 180,
+    "broken_count": 18,
+    "chalky_count": 0,
+    "damaged_count": 1366,
+    "discoloured_count": 2,
+    "sample_id": "Sample-0014"
+  },
+  {
+    "status": "Complete",
+    "timestamp": 1793713396,
+    "timestamp_str": "03/11/2026 19:13:20",
+    "image": "scan_1793713396.jpg",
+    "serial": "Sample-0013",
+    "live_step": "Analysis Complete",
+    "commodity": "Raw Rice",
+    "total_objects": 918,
+    "total_grains": 908,
+    "total_foreign_matter": 10,
+    "avg_length_mm": 10.895,
+    "avg_breadth_mm": 5.538,
+    "disposition": "SUBSTANDARD",
+    "stats": [
+      {
+        "param": "Good Grains",
+        "count": 145,
+        "pct": 15.97,
+        "limit": "-"
+      },
+      {
+        "param": "Brokens*",
+        "count": 7,
+        "pct": 0.77,
+        "limit": "15.00"
+      },
+      {
+        "param": "Foreign Matter",
+        "count": 10,
+        "pct": 1.09,
+        "limit": "0.00"
+      },
+      {
+        "param": "Damaged/Discoloured",
+        "count": 756,
+        "pct": 83.26,
+        "limit": "1.50"
+      },
+      {
+        "param": "Chalky Grains",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "1.00"
+      },
+      {
+        "param": "Red Grains",
+        "count": 1,
+        "pct": 0.11,
+        "limit": "3.00"
+      },
+      {
+        "param": "Dehusked Grains",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "10.00"
+      }
+    ],
+    "rows": [
+      {
+        "name": "Whole Grains (Head Rice)",
+        "denominator": "count(Whole) / total_rice_grains",
+        "limit": "Min 80.0%",
+        "resultPct": "15.97%",
+        "resultCountAndGms": "145 grains (3.16 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Broken Grains",
+        "denominator": "count(Broken) / total_rice_grains",
+        "limit": "Max 15.0%",
+        "resultPct": "0.77%",
+        "resultCountAndGms": "7 grains (0.15 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Chalky Grains",
+        "denominator": "count(Chalky >= 50%) / total_rice_grains",
+        "limit": "Max 3.0%",
+        "resultPct": "0.00%",
+        "resultCountAndGms": "0 grains (0.00 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Damaged Grains",
+        "denominator": "count(Insect/Cavitation) / total_rice_grains",
+        "limit": "Max 2.0%",
+        "resultPct": "83.15%",
+        "resultCountAndGms": "755 grains (16.45 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Discoloured Grains",
+        "denominator": "count(Peck/Heat) / total_rice_grains",
+        "limit": "Max 1.0%",
+        "resultPct": "0.11%",
+        "resultCountAndGms": "1 grains (0.02 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Foreign Matter",
+        "denominator": "total_foreign_matter / total_detected_objects",
+        "limit": "Max 0.5%",
+        "resultPct": "1.09%",
+        "resultCountAndGms": "10 particles (0.22 gms)",
+        "status": "substandard"
+      }
+    ],
+    "whole_count": 145,
+    "broken_count": 7,
+    "chalky_count": 0,
+    "damaged_count": 755,
+    "discoloured_count": 1,
+    "sample_id": "Sample-0013"
+  },
+  {
+    "status": "Complete",
+    "timestamp": 1793713272,
+    "timestamp_str": "03/11/2026 19:11:17",
+    "image": "scan_1793713272.jpg",
+    "serial": "Sample-0012",
+    "live_step": "Analysis Complete",
+    "commodity": "Raw Rice",
+    "total_objects": 1594,
+    "total_grains": 1562,
+    "total_foreign_matter": 32,
+    "avg_length_mm": 11.852,
+    "avg_breadth_mm": 6.202,
+    "disposition": "SUBSTANDARD",
+    "stats": [
+      {
+        "param": "Good Grains",
+        "count": 184,
+        "pct": 11.78,
+        "limit": "-"
+      },
+      {
+        "param": "Brokens*",
+        "count": 18,
+        "pct": 1.15,
+        "limit": "15.00"
+      },
+      {
+        "param": "Foreign Matter",
+        "count": 32,
+        "pct": 2.01,
+        "limit": "0.00"
+      },
+      {
+        "param": "Damaged/Discoloured",
+        "count": 1360,
+        "pct": 87.07,
+        "limit": "1.50"
+      },
+      {
+        "param": "Chalky Grains",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "1.00"
+      },
+      {
+        "param": "Red Grains",
+        "count": 1,
+        "pct": 0.06,
+        "limit": "3.00"
+      },
+      {
+        "param": "Dehusked Grains",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "10.00"
+      }
+    ],
+    "rows": [
+      {
+        "name": "Whole Grains (Head Rice)",
+        "denominator": "count(Whole) / total_rice_grains",
+        "limit": "Min 80.0%",
+        "resultPct": "11.78%",
+        "resultCountAndGms": "184 grains (2.31 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Broken Grains",
+        "denominator": "count(Broken) / total_rice_grains",
+        "limit": "Max 15.0%",
+        "resultPct": "1.15%",
+        "resultCountAndGms": "18 grains (0.23 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Chalky Grains",
+        "denominator": "count(Chalky >= 50%) / total_rice_grains",
+        "limit": "Max 3.0%",
+        "resultPct": "0.00%",
+        "resultCountAndGms": "0 grains (0.00 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Damaged Grains",
+        "denominator": "count(Insect/Cavitation) / total_rice_grains",
+        "limit": "Max 2.0%",
+        "resultPct": "87.00%",
+        "resultCountAndGms": "1359 grains (17.05 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Discoloured Grains",
+        "denominator": "count(Peck/Heat) / total_rice_grains",
+        "limit": "Max 1.0%",
+        "resultPct": "0.06%",
+        "resultCountAndGms": "1 grains (0.01 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Foreign Matter",
+        "denominator": "total_foreign_matter / total_detected_objects",
+        "limit": "Max 0.5%",
+        "resultPct": "2.01%",
+        "resultCountAndGms": "32 particles (0.40 gms)",
+        "status": "substandard"
+      }
+    ],
+    "whole_count": 184,
+    "broken_count": 18,
+    "chalky_count": 0,
+    "damaged_count": 1359,
+    "discoloured_count": 1,
+    "sample_id": "Sample-0012"
+  },
+  {
+    "status": "Complete",
+    "timestamp": 1793711032,
+    "timestamp_str": "03/11/2026 18:33:58",
+    "image": "scan_1793711032.jpg",
+    "serial": "Sample-0011",
+    "live_step": "Analysis Complete",
+    "commodity": "Raw Rice",
+    "total_objects": 1594,
+    "total_grains": 1548,
+    "total_foreign_matter": 46,
+    "avg_length_mm": 11.868,
+    "avg_breadth_mm": 6.151,
+    "disposition": "SUBSTANDARD",
+    "stats": [
+      {
+        "param": "Good Grains",
+        "count": 176,
+        "pct": 11.37,
+        "limit": "-"
+      },
+      {
+        "param": "Brokens*",
+        "count": 19,
+        "pct": 1.23,
+        "limit": "15.00"
+      },
+      {
+        "param": "Foreign Matter",
+        "count": 46,
+        "pct": 2.89,
+        "limit": "0.00"
+      },
+      {
+        "param": "Damaged/Discoloured",
+        "count": 1353,
+        "pct": 87.4,
+        "limit": "1.50"
+      },
+      {
+        "param": "Chalky Grains",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "1.00"
+      },
+      {
+        "param": "Red Grains",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "3.00"
+      },
+      {
+        "param": "Dehusked Grains",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "10.00"
+      }
+    ],
+    "rows": [
+      {
+        "name": "Whole Grains (Head Rice)",
+        "denominator": "count(Whole) / total_rice_grains",
+        "limit": "Min 80.0%",
+        "resultPct": "11.37%",
+        "resultCountAndGms": "176 grains (2.21 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Broken Grains",
+        "denominator": "count(Broken) / total_rice_grains",
+        "limit": "Max 15.0%",
+        "resultPct": "1.23%",
+        "resultCountAndGms": "19 grains (0.24 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Chalky Grains",
+        "denominator": "count(Chalky >= 50%) / total_rice_grains",
+        "limit": "Max 3.0%",
+        "resultPct": "0.00%",
+        "resultCountAndGms": "0 grains (0.00 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Damaged Grains",
+        "denominator": "count(Insect/Cavitation) / total_rice_grains",
+        "limit": "Max 2.0%",
+        "resultPct": "87.40%",
+        "resultCountAndGms": "1353 grains (16.98 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Discoloured Grains",
+        "denominator": "count(Peck/Heat) / total_rice_grains",
+        "limit": "Max 1.0%",
+        "resultPct": "0.00%",
+        "resultCountAndGms": "0 grains (0.00 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Foreign Matter",
+        "denominator": "total_foreign_matter / total_detected_objects",
+        "limit": "Max 0.5%",
+        "resultPct": "2.89%",
+        "resultCountAndGms": "46 particles (0.58 gms)",
+        "status": "substandard"
+      }
+    ],
+    "whole_count": 176,
+    "broken_count": 19,
+    "chalky_count": 0,
+    "damaged_count": 1353,
+    "discoloured_count": 0,
+    "sample_id": "Sample-0011"
+  },
+  {
+    "status": "Complete",
+    "timestamp": 1793710844,
+    "timestamp_str": "03/11/2026 18:30:50",
+    "image": "scan_1793710844.jpg",
+    "serial": "Sample-0010",
+    "live_step": "Analysis Complete",
+    "commodity": "Raw Rice",
+    "total_objects": 1585,
+    "total_grains": 1546,
+    "total_foreign_matter": 39,
+    "avg_length_mm": 11.911,
+    "avg_breadth_mm": 6.17,
+    "disposition": "SUBSTANDARD",
+    "stats": [
+      {
+        "param": "Good Grains",
+        "count": 170,
+        "pct": 11.0,
+        "limit": "-"
+      },
+      {
+        "param": "Brokens*",
+        "count": 17,
+        "pct": 1.1,
+        "limit": "15.00"
+      },
+      {
+        "param": "Foreign Matter",
+        "count": 39,
+        "pct": 2.46,
+        "limit": "0.00"
+      },
+      {
+        "param": "Damaged/Discoloured",
+        "count": 1358,
+        "pct": 87.84,
+        "limit": "1.50"
+      },
+      {
+        "param": "Chalky Grains",
+        "count": 1,
+        "pct": 0.06,
+        "limit": "1.00"
+      },
+      {
+        "param": "Red Grains",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "3.00"
+      },
+      {
+        "param": "Dehusked Grains",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "10.00"
+      }
+    ],
+    "rows": [
+      {
+        "name": "Whole Grains (Head Rice)",
+        "denominator": "count(Whole) / total_rice_grains",
+        "limit": "Min 80.0%",
+        "resultPct": "11.00%",
+        "resultCountAndGms": "170 grains (2.15 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Broken Grains",
+        "denominator": "count(Broken) / total_rice_grains",
+        "limit": "Max 15.0%",
+        "resultPct": "1.10%",
+        "resultCountAndGms": "17 grains (0.21 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Chalky Grains",
+        "denominator": "count(Chalky >= 50%) / total_rice_grains",
+        "limit": "Max 3.0%",
+        "resultPct": "0.06%",
+        "resultCountAndGms": "1 grains (0.01 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Damaged Grains",
+        "denominator": "count(Insect/Cavitation) / total_rice_grains",
+        "limit": "Max 2.0%",
+        "resultPct": "87.84%",
+        "resultCountAndGms": "1358 grains (17.14 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Discoloured Grains",
+        "denominator": "count(Peck/Heat) / total_rice_grains",
+        "limit": "Max 1.0%",
+        "resultPct": "0.00%",
+        "resultCountAndGms": "0 grains (0.00 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Foreign Matter",
+        "denominator": "total_foreign_matter / total_detected_objects",
+        "limit": "Max 0.5%",
+        "resultPct": "2.46%",
+        "resultCountAndGms": "39 particles (0.49 gms)",
+        "status": "substandard"
+      }
+    ],
+    "whole_count": 170,
+    "broken_count": 17,
+    "chalky_count": 1,
+    "damaged_count": 1358,
+    "discoloured_count": 0,
+    "sample_id": "Sample-0010"
+  },
+  {
+    "status": "Complete",
+    "timestamp": 1793710364,
+    "timestamp_str": "03/11/2026 18:22:47",
+    "image": "scan_1793710364.jpg",
+    "serial": "Sample-0009",
+    "live_step": "Analysis Complete",
+    "commodity": "Raw Rice",
+    "total_objects": 227,
+    "total_grains": 53,
+    "total_foreign_matter": 174,
+    "avg_length_mm": 9.909,
+    "avg_breadth_mm": 2.011,
+    "disposition": "SUBSTANDARD",
+    "stats": [
+      {
+        "param": "Good Grains",
+        "count": 38,
+        "pct": 71.7,
+        "limit": "-"
+      },
+      {
+        "param": "Brokens*",
+        "count": 9,
+        "pct": 16.98,
+        "limit": "15.00"
+      },
+      {
+        "param": "Foreign Matter",
+        "count": 174,
+        "pct": 76.65,
+        "limit": "0.00"
+      },
+      {
+        "param": "Damaged/Discoloured",
+        "count": 6,
+        "pct": 11.32,
+        "limit": "1.50"
+      },
+      {
+        "param": "Chalky Grains",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "1.00"
+      },
+      {
+        "param": "Red Grains",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "3.00"
+      },
+      {
+        "param": "Dehusked Grains",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "10.00"
+      }
+    ],
+    "rows": [
+      {
+        "name": "Whole Grains (Head Rice)",
+        "denominator": "count(Whole) / total_rice_grains",
+        "limit": "Min 80.0%",
+        "resultPct": "71.70%",
+        "resultCountAndGms": "38 grains (3.35 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Broken Grains",
+        "denominator": "count(Broken) / total_rice_grains",
+        "limit": "Max 15.0%",
+        "resultPct": "16.98%",
+        "resultCountAndGms": "9 grains (0.79 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Chalky Grains",
+        "denominator": "count(Chalky >= 50%) / total_rice_grains",
+        "limit": "Max 3.0%",
+        "resultPct": "0.00%",
+        "resultCountAndGms": "0 grains (0.00 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Damaged Grains",
+        "denominator": "count(Insect/Cavitation) / total_rice_grains",
+        "limit": "Max 2.0%",
+        "resultPct": "11.32%",
+        "resultCountAndGms": "6 grains (0.53 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Discoloured Grains",
+        "denominator": "count(Peck/Heat) / total_rice_grains",
+        "limit": "Max 1.0%",
+        "resultPct": "0.00%",
+        "resultCountAndGms": "0 grains (0.00 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Foreign Matter",
+        "denominator": "total_foreign_matter / total_detected_objects",
+        "limit": "Max 0.5%",
+        "resultPct": "76.65%",
+        "resultCountAndGms": "174 particles (15.33 gms)",
+        "status": "substandard"
+      }
+    ],
+    "whole_count": 38,
+    "broken_count": 9,
+    "chalky_count": 0,
+    "damaged_count": 6,
+    "discoloured_count": 0,
+    "sample_id": "Sample-0009"
+  },
+  {
+    "status": "Complete",
+    "timestamp": 1793511300,
+    "timestamp_str": "01/11/2026 11:05:01",
+    "image": "scan_1793511300.jpg",
+    "serial": "Sample-0008",
+    "live_step": "Analysis Complete",
+    "commodity": "Raw Rice",
+    "total_objects": 588,
+    "total_grains": 586,
+    "total_foreign_matter": 2,
+    "avg_length_mm": 3.167,
+    "avg_breadth_mm": 1.396,
+    "disposition": "SUBSTANDARD",
+    "stats": [
+      {
+        "param": "Good Grains",
+        "count": 294,
+        "pct": 50.17,
+        "limit": "-"
+      },
+      {
+        "param": "Brokens*",
+        "count": 122,
+        "pct": 20.82,
+        "limit": "15.00"
+      },
+      {
+        "param": "Foreign Matter",
+        "count": 2,
+        "pct": 0.34,
+        "limit": "0.00"
+      },
+      {
+        "param": "Damaged/Discoloured",
+        "count": 23,
+        "pct": 3.92,
+        "limit": "1.50"
+      },
+      {
+        "param": "Chalky Grains",
+        "count": 147,
+        "pct": 25.09,
+        "limit": "1.00"
+      },
+      {
+        "param": "Red Grains",
+        "count": 4,
+        "pct": 0.68,
+        "limit": "3.00"
+      },
+      {
+        "param": "Dehusked Grains",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "10.00"
+      }
+    ],
+    "rows": [
+      {
+        "name": "Whole Grains (Head Rice)",
+        "denominator": "count(Whole) / total_rice_grains",
+        "limit": "Min 80.0%",
+        "resultPct": "50.17%",
+        "resultCountAndGms": "294 grains (10.00 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Broken Grains",
+        "denominator": "count(Broken) / total_rice_grains",
+        "limit": "Max 15.0%",
+        "resultPct": "20.82%",
+        "resultCountAndGms": "122 grains (4.15 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Chalky Grains",
+        "denominator": "count(Chalky >= 50%) / total_rice_grains",
+        "limit": "Max 3.0%",
+        "resultPct": "25.09%",
+        "resultCountAndGms": "147 grains (5.00 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Damaged Grains",
+        "denominator": "count(Insect/Cavitation) / total_rice_grains",
+        "limit": "Max 2.0%",
+        "resultPct": "3.24%",
+        "resultCountAndGms": "19 grains (0.65 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Discoloured Grains",
+        "denominator": "count(Peck/Heat) / total_rice_grains",
+        "limit": "Max 1.0%",
+        "resultPct": "0.68%",
+        "resultCountAndGms": "4 grains (0.14 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Foreign Matter",
+        "denominator": "total_foreign_matter / total_detected_objects",
+        "limit": "Max 0.5%",
+        "resultPct": "0.34%",
+        "resultCountAndGms": "2 particles (0.07 gms)",
+        "status": "acceptable"
+      }
+    ],
+    "whole_count": 294,
+    "broken_count": 122,
+    "chalky_count": 147,
+    "damaged_count": 19,
+    "discoloured_count": 4,
+    "sample_id": "Sample-0008"
+  },
+  {
+    "status": "Complete",
+    "timestamp": 1793187233,
+    "timestamp_str": "28/10/2026 17:03:54",
+    "image": "scan_1793187233.jpg",
+    "serial": "Sample-0007",
+    "live_step": "Analysis Complete",
+    "commodity": "Raw Rice",
+    "total_objects": 424,
+    "total_grains": 424,
+    "total_foreign_matter": 0,
+    "avg_length_mm": 4.973,
+    "avg_breadth_mm": 2.387,
+    "disposition": "SUBSTANDARD",
+    "stats": [
+      {
+        "param": "Good Grains",
+        "count": 185,
+        "pct": 43.63,
+        "limit": "-"
+      },
+      {
+        "param": "Brokens*",
+        "count": 48,
+        "pct": 11.32,
+        "limit": "15.00"
+      },
+      {
+        "param": "Foreign Matter",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "0.00"
+      },
+      {
+        "param": "Damaged/Discoloured",
+        "count": 190,
+        "pct": 44.81,
+        "limit": "1.50"
+      },
+      {
+        "param": "Chalky Grains",
+        "count": 1,
+        "pct": 0.24,
+        "limit": "1.00"
+      },
+      {
+        "param": "Red Grains",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "3.00"
+      },
+      {
+        "param": "Dehusked Grains",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "10.00"
+      }
+    ],
+    "rows": [
+      {
+        "name": "Whole Grains (Head Rice)",
+        "denominator": "count(Whole) / total_rice_grains",
+        "limit": "Min 80.0%",
+        "resultPct": "43.63%",
+        "resultCountAndGms": "185 grains (8.73 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Broken Grains",
+        "denominator": "count(Broken) / total_rice_grains",
+        "limit": "Max 15.0%",
+        "resultPct": "11.32%",
+        "resultCountAndGms": "48 grains (2.26 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Chalky Grains",
+        "denominator": "count(Chalky >= 50%) / total_rice_grains",
+        "limit": "Max 3.0%",
+        "resultPct": "0.24%",
+        "resultCountAndGms": "1 grains (0.05 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Damaged Grains",
+        "denominator": "count(Insect/Cavitation) / total_rice_grains",
+        "limit": "Max 2.0%",
+        "resultPct": "44.81%",
+        "resultCountAndGms": "190 grains (8.96 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Discoloured Grains",
+        "denominator": "count(Peck/Heat) / total_rice_grains",
+        "limit": "Max 1.0%",
+        "resultPct": "0.00%",
+        "resultCountAndGms": "0 grains (0.00 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Foreign Matter",
+        "denominator": "total_foreign_matter / total_detected_objects",
+        "limit": "Max 0.5%",
+        "resultPct": "0.00%",
+        "resultCountAndGms": "0 particles (0.00 gms)",
+        "status": "acceptable"
+      }
+    ],
+    "whole_count": 185,
+    "broken_count": 48,
+    "chalky_count": 1,
+    "damaged_count": 190,
+    "discoloured_count": 0,
+    "sample_id": "Sample-0007"
+  },
+  {
+    "status": "Complete",
+    "timestamp": 1793187168,
+    "timestamp_str": "28/10/2026 17:02:48",
+    "image": "scan_1793187168.jpg",
+    "serial": "Sample-0006",
+    "live_step": "Analysis Complete",
+    "commodity": "Raw Rice",
+    "total_objects": 424,
+    "total_grains": 424,
+    "total_foreign_matter": 0,
+    "avg_length_mm": 4.977,
+    "avg_breadth_mm": 2.387,
+    "disposition": "SUBSTANDARD",
+    "stats": [
+      {
+        "param": "Good Grains",
+        "count": 183,
+        "pct": 43.16,
+        "limit": "-"
+      },
+      {
+        "param": "Brokens*",
+        "count": 46,
+        "pct": 10.85,
+        "limit": "15.00"
+      },
+      {
+        "param": "Foreign Matter",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "0.00"
+      },
+      {
+        "param": "Damaged/Discoloured",
+        "count": 194,
+        "pct": 45.75,
+        "limit": "1.50"
+      },
+      {
+        "param": "Chalky Grains",
+        "count": 1,
+        "pct": 0.24,
+        "limit": "1.00"
+      },
+      {
+        "param": "Red Grains",
+        "count": 1,
+        "pct": 0.24,
+        "limit": "3.00"
+      },
+      {
+        "param": "Dehusked Grains",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "10.00"
+      }
+    ],
+    "rows": [
+      {
+        "name": "Whole Grains (Head Rice)",
+        "denominator": "count(Whole) / total_rice_grains",
+        "limit": "Min 80.0%",
+        "resultPct": "43.16%",
+        "resultCountAndGms": "183 grains (8.63 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Broken Grains",
+        "denominator": "count(Broken) / total_rice_grains",
+        "limit": "Max 15.0%",
+        "resultPct": "10.85%",
+        "resultCountAndGms": "46 grains (2.17 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Chalky Grains",
+        "denominator": "count(Chalky >= 50%) / total_rice_grains",
+        "limit": "Max 3.0%",
+        "resultPct": "0.24%",
+        "resultCountAndGms": "1 grains (0.05 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Damaged Grains",
+        "denominator": "count(Insect/Cavitation) / total_rice_grains",
+        "limit": "Max 2.0%",
+        "resultPct": "45.52%",
+        "resultCountAndGms": "193 grains (9.10 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Discoloured Grains",
+        "denominator": "count(Peck/Heat) / total_rice_grains",
+        "limit": "Max 1.0%",
+        "resultPct": "0.24%",
+        "resultCountAndGms": "1 grains (0.05 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Foreign Matter",
+        "denominator": "total_foreign_matter / total_detected_objects",
+        "limit": "Max 0.5%",
+        "resultPct": "0.00%",
+        "resultCountAndGms": "0 particles (0.00 gms)",
+        "status": "acceptable"
+      }
+    ],
+    "whole_count": 183,
+    "broken_count": 46,
+    "chalky_count": 1,
+    "damaged_count": 193,
+    "discoloured_count": 1,
+    "sample_id": "Sample-0006"
+  },
+  {
+    "status": "Complete",
+    "timestamp": 1793186935,
+    "timestamp_str": "28/10/2026 16:58:56",
+    "image": "scan_1793186935.jpg",
+    "serial": "Sample-0005",
+    "live_step": "Analysis Complete",
+    "commodity": "Raw Rice",
+    "total_objects": 425,
+    "total_grains": 423,
+    "total_foreign_matter": 2,
+    "avg_length_mm": 4.976,
+    "avg_breadth_mm": 2.379,
+    "disposition": "SUBSTANDARD",
+    "stats": [
+      {
+        "param": "Good Grains",
+        "count": 178,
+        "pct": 42.08,
+        "limit": "-"
+      },
+      {
+        "param": "Brokens*",
+        "count": 47,
+        "pct": 11.11,
+        "limit": "15.00"
+      },
+      {
+        "param": "Foreign Matter",
+        "count": 2,
+        "pct": 0.47,
+        "limit": "0.00"
+      },
+      {
+        "param": "Damaged/Discoloured",
+        "count": 197,
+        "pct": 46.57,
+        "limit": "1.50"
+      },
+      {
+        "param": "Chalky Grains",
+        "count": 1,
+        "pct": 0.24,
+        "limit": "1.00"
+      },
+      {
+        "param": "Red Grains",
+        "count": 1,
+        "pct": 0.24,
+        "limit": "3.00"
+      },
+      {
+        "param": "Dehusked Grains",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "10.00"
+      }
+    ],
+    "rows": [
+      {
+        "name": "Whole Grains (Head Rice)",
+        "denominator": "count(Whole) / total_rice_grains",
+        "limit": "Min 80.0%",
+        "resultPct": "42.08%",
+        "resultCountAndGms": "178 grains (8.38 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Broken Grains",
+        "denominator": "count(Broken) / total_rice_grains",
+        "limit": "Max 15.0%",
+        "resultPct": "11.11%",
+        "resultCountAndGms": "47 grains (2.21 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Chalky Grains",
+        "denominator": "count(Chalky >= 50%) / total_rice_grains",
+        "limit": "Max 3.0%",
+        "resultPct": "0.24%",
+        "resultCountAndGms": "1 grains (0.05 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Damaged Grains",
+        "denominator": "count(Insect/Cavitation) / total_rice_grains",
+        "limit": "Max 2.0%",
+        "resultPct": "46.34%",
+        "resultCountAndGms": "196 grains (9.22 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Discoloured Grains",
+        "denominator": "count(Peck/Heat) / total_rice_grains",
+        "limit": "Max 1.0%",
+        "resultPct": "0.24%",
+        "resultCountAndGms": "1 grains (0.05 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Foreign Matter",
+        "denominator": "total_foreign_matter / total_detected_objects",
+        "limit": "Max 0.5%",
+        "resultPct": "0.47%",
+        "resultCountAndGms": "2 particles (0.09 gms)",
+        "status": "acceptable"
+      }
+    ],
+    "whole_count": 178,
+    "broken_count": 47,
+    "chalky_count": 1,
+    "damaged_count": 196,
+    "discoloured_count": 1,
+    "sample_id": "Sample-0005"
+  },
+  {
+    "status": "Complete",
+    "timestamp": 1793186399,
+    "timestamp_str": "28/10/2026 16:50:00",
+    "image": "scan_1793186399.jpg",
+    "serial": "Sample-0004",
+    "live_step": "Analysis Complete",
+    "commodity": "Raw Rice",
+    "total_objects": 423,
+    "total_grains": 423,
+    "total_foreign_matter": 0,
+    "avg_length_mm": 4.989,
+    "avg_breadth_mm": 2.387,
+    "disposition": "SUBSTANDARD",
+    "stats": [
+      {
+        "param": "Good Grains",
+        "count": 179,
+        "pct": 42.32,
+        "limit": "-"
+      },
+      {
+        "param": "Brokens*",
+        "count": 47,
+        "pct": 11.11,
+        "limit": "15.00"
+      },
+      {
+        "param": "Foreign Matter",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "0.00"
+      },
+      {
+        "param": "Damaged/Discoloured",
+        "count": 197,
+        "pct": 46.57,
+        "limit": "1.50"
+      },
+      {
+        "param": "Chalky Grains",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "1.00"
+      },
+      {
+        "param": "Red Grains",
+        "count": 1,
+        "pct": 0.24,
+        "limit": "3.00"
+      },
+      {
+        "param": "Dehusked Grains",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "10.00"
+      }
+    ],
+    "rows": [
+      {
+        "name": "Whole Grains (Head Rice)",
+        "denominator": "count(Whole) / total_rice_grains",
+        "limit": "Min 80.0%",
+        "resultPct": "42.32%",
+        "resultCountAndGms": "179 grains (8.46 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Broken Grains",
+        "denominator": "count(Broken) / total_rice_grains",
+        "limit": "Max 15.0%",
+        "resultPct": "11.11%",
+        "resultCountAndGms": "47 grains (2.22 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Chalky Grains",
+        "denominator": "count(Chalky >= 50%) / total_rice_grains",
+        "limit": "Max 3.0%",
+        "resultPct": "0.00%",
+        "resultCountAndGms": "0 grains (0.00 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Damaged Grains",
+        "denominator": "count(Insect/Cavitation) / total_rice_grains",
+        "limit": "Max 2.0%",
+        "resultPct": "46.34%",
+        "resultCountAndGms": "196 grains (9.27 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Discoloured Grains",
+        "denominator": "count(Peck/Heat) / total_rice_grains",
+        "limit": "Max 1.0%",
+        "resultPct": "0.24%",
+        "resultCountAndGms": "1 grains (0.05 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Foreign Matter",
+        "denominator": "total_foreign_matter / total_detected_objects",
+        "limit": "Max 0.5%",
+        "resultPct": "0.00%",
+        "resultCountAndGms": "0 particles (0.00 gms)",
+        "status": "acceptable"
+      }
+    ],
+    "whole_count": 179,
+    "broken_count": 47,
+    "chalky_count": 0,
+    "damaged_count": 196,
+    "discoloured_count": 1,
+    "sample_id": "Sample-0004"
+  },
+  {
+    "status": "Complete",
+    "timestamp": 1793185346,
+    "timestamp_str": "28/10/2026 16:32:27",
+    "image": "scan_1793185346.jpg",
+    "serial": "Sample-0003",
+    "live_step": "Analysis Complete",
+    "commodity": "Raw Rice",
+    "total_objects": 588,
+    "total_grains": 586,
+    "total_foreign_matter": 2,
+    "avg_length_mm": 3.167,
+    "avg_breadth_mm": 1.396,
+    "disposition": "SUBSTANDARD",
+    "stats": [
+      {
+        "param": "Good Grains",
+        "count": 294,
+        "pct": 50.17,
+        "limit": "-"
+      },
+      {
+        "param": "Brokens*",
+        "count": 122,
+        "pct": 20.82,
+        "limit": "15.00"
+      },
+      {
+        "param": "Foreign Matter",
+        "count": 2,
+        "pct": 0.34,
+        "limit": "0.00"
+      },
+      {
+        "param": "Damaged/Discoloured",
+        "count": 23,
+        "pct": 3.92,
+        "limit": "1.50"
+      },
+      {
+        "param": "Chalky Grains",
+        "count": 147,
+        "pct": 25.09,
+        "limit": "1.00"
+      },
+      {
+        "param": "Red Grains",
+        "count": 4,
+        "pct": 0.68,
+        "limit": "3.00"
+      },
+      {
+        "param": "Dehusked Grains",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "10.00"
+      }
+    ],
+    "rows": [
+      {
+        "name": "Whole Grains (Head Rice)",
+        "denominator": "count(Whole) / total_rice_grains",
+        "limit": "Min 80.0%",
+        "resultPct": "50.17%",
+        "resultCountAndGms": "294 grains (10.00 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Broken Grains",
+        "denominator": "count(Broken) / total_rice_grains",
+        "limit": "Max 15.0%",
+        "resultPct": "20.82%",
+        "resultCountAndGms": "122 grains (4.15 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Chalky Grains",
+        "denominator": "count(Chalky >= 50%) / total_rice_grains",
+        "limit": "Max 3.0%",
+        "resultPct": "25.09%",
+        "resultCountAndGms": "147 grains (5.00 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Damaged Grains",
+        "denominator": "count(Insect/Cavitation) / total_rice_grains",
+        "limit": "Max 2.0%",
+        "resultPct": "3.24%",
+        "resultCountAndGms": "19 grains (0.65 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Discoloured Grains",
+        "denominator": "count(Peck/Heat) / total_rice_grains",
+        "limit": "Max 1.0%",
+        "resultPct": "0.68%",
+        "resultCountAndGms": "4 grains (0.14 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Foreign Matter",
+        "denominator": "total_foreign_matter / total_detected_objects",
+        "limit": "Max 0.5%",
+        "resultPct": "0.34%",
+        "resultCountAndGms": "2 particles (0.07 gms)",
+        "status": "acceptable"
+      }
+    ],
+    "whole_count": 294,
+    "broken_count": 122,
+    "chalky_count": 147,
+    "damaged_count": 19,
+    "discoloured_count": 4,
+    "sample_id": "Sample-0003"
+  },
+  {
+    "status": "Complete",
+    "timestamp": 1793185298,
+    "timestamp_str": "28/10/2026 16:31:38",
+    "image": "scan_1793185298.jpg",
+    "serial": "Sample-0002",
+    "live_step": "Analysis Complete",
+    "commodity": "Raw Rice",
+    "total_objects": 588,
+    "total_grains": 586,
+    "total_foreign_matter": 2,
+    "avg_length_mm": 3.167,
+    "avg_breadth_mm": 1.396,
+    "disposition": "SUBSTANDARD",
+    "stats": [
+      {
+        "param": "Good Grains",
+        "count": 294,
+        "pct": 50.17,
+        "limit": "-"
+      },
+      {
+        "param": "Brokens*",
+        "count": 122,
+        "pct": 20.82,
+        "limit": "15.00"
+      },
+      {
+        "param": "Foreign Matter",
+        "count": 2,
+        "pct": 0.34,
+        "limit": "0.00"
+      },
+      {
+        "param": "Damaged/Discoloured",
+        "count": 23,
+        "pct": 3.92,
+        "limit": "1.50"
+      },
+      {
+        "param": "Chalky Grains",
+        "count": 147,
+        "pct": 25.09,
+        "limit": "1.00"
+      },
+      {
+        "param": "Red Grains",
+        "count": 4,
+        "pct": 0.68,
+        "limit": "3.00"
+      },
+      {
+        "param": "Dehusked Grains",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "10.00"
+      }
+    ],
+    "rows": [
+      {
+        "name": "Whole Grains (Head Rice)",
+        "denominator": "count(Whole) / total_rice_grains",
+        "limit": "Min 80.0%",
+        "resultPct": "50.17%",
+        "resultCountAndGms": "294 grains (10.00 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Broken Grains",
+        "denominator": "count(Broken) / total_rice_grains",
+        "limit": "Max 15.0%",
+        "resultPct": "20.82%",
+        "resultCountAndGms": "122 grains (4.15 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Chalky Grains",
+        "denominator": "count(Chalky >= 50%) / total_rice_grains",
+        "limit": "Max 3.0%",
+        "resultPct": "25.09%",
+        "resultCountAndGms": "147 grains (5.00 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Damaged Grains",
+        "denominator": "count(Insect/Cavitation) / total_rice_grains",
+        "limit": "Max 2.0%",
+        "resultPct": "3.24%",
+        "resultCountAndGms": "19 grains (0.65 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Discoloured Grains",
+        "denominator": "count(Peck/Heat) / total_rice_grains",
+        "limit": "Max 1.0%",
+        "resultPct": "0.68%",
+        "resultCountAndGms": "4 grains (0.14 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Foreign Matter",
+        "denominator": "total_foreign_matter / total_detected_objects",
+        "limit": "Max 0.5%",
+        "resultPct": "0.34%",
+        "resultCountAndGms": "2 particles (0.07 gms)",
+        "status": "acceptable"
+      }
+    ],
+    "whole_count": 294,
+    "broken_count": 122,
+    "chalky_count": 147,
+    "damaged_count": 19,
+    "discoloured_count": 4,
+    "sample_id": "Sample-0002"
+  },
+  {
+    "status": "Complete",
+    "timestamp": 1793185115,
+    "timestamp_str": "28/10/2026 16:28:36",
+    "image": "scan_1793185115.jpg",
+    "serial": "Sample-0001",
+    "live_step": "Analysis Complete",
+    "commodity": "Raw Rice",
+    "total_objects": 588,
+    "total_grains": 586,
+    "total_foreign_matter": 2,
+    "avg_length_mm": 3.167,
+    "avg_breadth_mm": 1.396,
+    "disposition": "SUBSTANDARD",
+    "stats": [
+      {
+        "param": "Good Grains",
+        "count": 294,
+        "pct": 50.17,
+        "limit": "-"
+      },
+      {
+        "param": "Brokens*",
+        "count": 122,
+        "pct": 20.82,
+        "limit": "15.00"
+      },
+      {
+        "param": "Foreign Matter",
+        "count": 2,
+        "pct": 0.34,
+        "limit": "0.00"
+      },
+      {
+        "param": "Damaged/Discoloured",
+        "count": 23,
+        "pct": 3.92,
+        "limit": "1.50"
+      },
+      {
+        "param": "Chalky Grains",
+        "count": 147,
+        "pct": 25.09,
+        "limit": "1.00"
+      },
+      {
+        "param": "Red Grains",
+        "count": 4,
+        "pct": 0.68,
+        "limit": "3.00"
+      },
+      {
+        "param": "Dehusked Grains",
+        "count": 0,
+        "pct": 0.0,
+        "limit": "10.00"
+      }
+    ],
+    "rows": [
+      {
+        "name": "Whole Grains (Head Rice)",
+        "denominator": "count(Whole) / total_rice_grains",
+        "limit": "Min 80.0%",
+        "resultPct": "50.17%",
+        "resultCountAndGms": "294 grains (10.00 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Broken Grains",
+        "denominator": "count(Broken) / total_rice_grains",
+        "limit": "Max 15.0%",
+        "resultPct": "20.82%",
+        "resultCountAndGms": "122 grains (4.15 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Chalky Grains",
+        "denominator": "count(Chalky >= 50%) / total_rice_grains",
+        "limit": "Max 3.0%",
+        "resultPct": "25.09%",
+        "resultCountAndGms": "147 grains (5.00 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Damaged Grains",
+        "denominator": "count(Insect/Cavitation) / total_rice_grains",
+        "limit": "Max 2.0%",
+        "resultPct": "3.24%",
+        "resultCountAndGms": "19 grains (0.65 gms)",
+        "status": "substandard"
+      },
+      {
+        "name": "Discoloured Grains",
+        "denominator": "count(Peck/Heat) / total_rice_grains",
+        "limit": "Max 1.0%",
+        "resultPct": "0.68%",
+        "resultCountAndGms": "4 grains (0.14 gms)",
+        "status": "acceptable"
+      },
+      {
+        "name": "Foreign Matter",
+        "denominator": "total_foreign_matter / total_detected_objects",
+        "limit": "Max 0.5%",
+        "resultPct": "0.34%",
+        "resultCountAndGms": "2 particles (0.07 gms)",
+        "status": "acceptable"
+      }
+    ],
+    "whole_count": 294,
+    "broken_count": 122,
+    "chalky_count": 147,
+    "damaged_count": 19,
+    "discoloured_count": 4,
+    "sample_id": "Sample-0001"
+  }
+]

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Grain Quality Analyzer
+Comment=RiceAge Optical Grain Quality Analyzer (Real AI)
+Exec=/home/bigb-cm5/Desktop/hp_grain_analyzer/run.sh
+Icon=scanner
+Terminal=true
+Type=Application
+Categories=Utility;Science;

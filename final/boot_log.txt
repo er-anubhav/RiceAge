@@ -1,0 +1,11 @@
+ * Serving Flask app 'rice_kiosk'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://127.0.0.1:5000
+[33mPress CTRL+C to quit[0m
+Initializing keyboard
+Found 54 layouts
+Found 2 layers
+Resize 1024x150 1.000000, 55 layouts
