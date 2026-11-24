@@ -28,6 +28,8 @@ def test_raw_scan_end_to_end_no_ground_truth(tmp_path):
     Reconciles HTML, JSON, and CSV report totals.
     """
     raw_image_path = "data/dataset/images/mixed/mixed 1.jpg"
+    if not os.path.exists(raw_image_path):
+        raw_image_path = "data/samples/sample_1489x2048.jpg"
     assert os.path.exists(raw_image_path), f"Raw test image missing: {raw_image_path}"
 
     cfg = PipelineConfig()
@@ -82,6 +84,8 @@ def test_inference_does_not_access_annotations(monkeypatch, tmp_path):
     P1/P5: Enforce that pipeline inference NEVER accesses annotations files or directories.
     """
     raw_image_path = "data/dataset/images/whole/whole.jpg"
+    if not os.path.exists(raw_image_path):
+        raw_image_path = "data/samples/sample_1489x2048.jpg"
     assert os.path.exists(raw_image_path)
 
     accessed_paths = []
@@ -173,7 +177,10 @@ def test_safe_grading_incomplete_behavior(tmp_path):
     cfg.export.reports_dir = str(tmp_path / "incomplete_out" / "reports")
 
     pipeline = RiceQualityPipeline(config=cfg)
-    res = pipeline.run("data/dataset/images/whole/whole.jpg", generate_outputs=True)
+    raw_p = "data/dataset/images/whole/whole.jpg"
+    if not os.path.exists(raw_p):
+        raw_p = "data/samples/sample_1489x2048.jpg"
+    res = pipeline.run(raw_p, generate_outputs=True)
 
     dec = res["grading_decision"]
     assert dec.status == "INCOMPLETE"

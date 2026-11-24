@@ -56,6 +56,9 @@ def inspect_metadata(image_path: str) -> Dict[str, Any]:
     }
 
 
+SUPPORTED_ACQUISITION_DPIS = {300.0, 600.0, 1200.0}
+
+
 # Determine the physical calibration (mm/pixel) for an image.
 def resolve_calibration(
     image_path: str,
@@ -66,18 +69,28 @@ def resolve_calibration(
     w, h = meta["width_px"], meta["height_px"]
 
     dpi = meta.get("dpi")
+    if not dpi and meta.get("jfif_density") and meta.get("jfif_unit") == 1:
+        dpi = meta.get("jfif_density")
+    if not dpi and meta.get("exif") and "XResolution" in meta["exif"]:
+        try:
+            x_res = float(meta["exif"]["XResolution"])
+            y_res = float(meta["exif"].get("YResolution", x_res))
+            dpi = (x_res, y_res)
+        except (ValueError, TypeError):
+            dpi = None
+
     if dpi and isinstance(dpi, (tuple, list)) and len(dpi) >= 2 and dpi[0] is not None and dpi[0] > 0:
         dpi_x, dpi_y = float(dpi[0]), float(dpi[1])
-        if abs(dpi_x - 1200.0) < 1.0 and abs(dpi_y - 1200.0) < 1.0:
-            if w >= 9000 and h >= 12000:
-                scale_mm = 25.4 / 1200.0
+        for target_dpi in sorted(SUPPORTED_ACQUISITION_DPIS, reverse=True):
+            if abs(dpi_x - target_dpi) < 2.0 and abs(dpi_y - target_dpi) < 2.0:
+                scale_mm = 25.4 / target_dpi
                 return CalibrationResult(
                     is_verified=True,
-                    effective_dpi=1200.0,
+                    effective_dpi=target_dpi,
                     pixel_scale_mm=scale_mm,
-                    pixels_per_mm=1200.0 / 25.4,
-                    source_info="Direct verified JFIF 1200 DPI metadata matching flatbed A4 scan dimensions",
-                    scale_factor_to_raw=1.0
+                    pixels_per_mm=target_dpi / 25.4,
+                    source_info=f"Direct verified JFIF/EXIF {int(target_dpi)} DPI metadata matching flatbed scan",
+                    scale_factor_to_raw=1200.0 / target_dpi
                 )
 
     if raw_reference_path and os.path.exists(raw_reference_path):
@@ -105,15 +118,29 @@ def resolve_calibration(
                     scale_factor_to_raw=avg_scale
                 )
 
-    if assumed_dpi is not None and assumed_dpi > 0:
-        scale_mm = 25.4 / assumed_dpi
+    if assumed_dpi is not None:
+        try:
+            val_dpi = float(assumed_dpi)
+        except (ValueError, TypeError):
+            raise ValueError(
+                f"Unsupported or invalid acquisition DPI: {assumed_dpi}. "
+                f"Supported resolutions are: {sorted([int(d) for d in SUPPORTED_ACQUISITION_DPIS])}. "
+                "Silently assuming 300 DPI is strictly rejected."
+            )
+        if val_dpi not in SUPPORTED_ACQUISITION_DPIS:
+            raise ValueError(
+                f"Unsupported acquisition DPI: {assumed_dpi}. "
+                f"Supported resolutions are: {sorted([int(d) for d in SUPPORTED_ACQUISITION_DPIS])}. "
+                "Silently assuming 300 DPI is strictly rejected."
+            )
+        scale_mm = 25.4 / val_dpi
         return CalibrationResult(
             is_verified=False,
-            effective_dpi=assumed_dpi,
+            effective_dpi=val_dpi,
             pixel_scale_mm=scale_mm,
-            pixels_per_mm=assumed_dpi / 25.4,
-            source_info=f"Unverified user-assumed DPI: {assumed_dpi}",
-            scale_factor_to_raw=1.0
+            pixels_per_mm=val_dpi / 25.4,
+            source_info=f"User-specified acquisition DPI: {int(val_dpi)}",
+            scale_factor_to_raw=1200.0 / val_dpi
         )
 
     return CalibrationResult(

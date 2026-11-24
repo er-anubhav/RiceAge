@@ -36,6 +36,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--cluster-area-thresh", type=int, default=650, help="Area threshold (px) to scrutinize as cluster")
     parser.add_argument("--solidity-thresh", type=float, default=0.92, help="Solidity threshold below which component is considered touching")
     parser.add_argument("--broken-ratio-thresh", type=float, default=0.75, help="Length fraction relative to median whole grain to consider broken")
+    parser.add_argument("--profile", type=str, default=None, choices=["baseline", "candidate_2"], help="Separation profile: baseline or candidate_2")
+    parser.add_argument(
+        "--dual-view-mode",
+        type=str,
+        default="single_view",
+        choices=["single_view", "bottom_primary_verification"],
+        help="Dual-view analysis mode: 'single_view' (default) or 'bottom_primary_verification' (Mode C)"
+    )
 
     return parser.parse_args()
 
@@ -57,6 +65,10 @@ def build_config_from_args(args: argparse.Namespace) -> PipelineConfig:
         cfg.calibration.assumed_dpi = args.assumed_dpi
 
     # Segmentation & AI Models
+    if getattr(args, "profile", None):
+        cfg.separation.apply_profile(args.profile)
+    if getattr(args, "dual_view_mode", None):
+        cfg.dual_view.apply_mode(args.dual_view_mode)
     cfg.segmentation.engine = args.seg_engine
     cfg.segmentation.method = args.seg_method
     cfg.separation.cluster_area_threshold_px = args.cluster_area_thresh

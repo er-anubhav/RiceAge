@@ -246,7 +246,12 @@ def separate_touching_grains(
     cluster_area_thresh_px: int = 650,
     solidity_thresh: float = 0.92,
     min_valid_area_px: int = 40,
-    min_single_area_px: Optional[int] = None
+    min_single_area_px: Optional[int] = None,
+    enable_concave_fallback: bool = False,
+    concave_max_cluster_area_factor: float = 2.5,
+    concave_min_cluster_solidity: float = 0.72,
+    concave_max_cluster_aspect_ratio: float = 3.8,
+    **kwargs: Any
 ) -> Tuple[np.ndarray, Dict[int, Dict[str, Any]], Dict[str, Any]]:
     h, w = binary_mask.shape[:2]
     instance_mask = np.zeros((h, w), dtype=np.int32)
@@ -255,6 +260,7 @@ def separate_touching_grains(
     current_grain_id = 1
     grain_diags: Dict[int, Dict[str, Any]] = {}
     clusters_proc, clusters_split, clusters_unres, isolated_cnt, cluster_grains, fragments_cnt = 0, 0, 0, 0, 0, 0
+    clusters_split_by_concave = 0
     min_single = min_single_area_px if min_single_area_px is not None else int(round(cluster_area_thresh_px * (180.0 / 650.0)))
 
     for comp_idx in range(1, num_cc):
@@ -292,6 +298,31 @@ def separate_touching_grains(
                     cluster_grains += len(sub_regions)
                     continue
 
+            if enable_concave_fallback:
+                max_area_allowed = cluster_area_thresh_px * concave_max_cluster_area_factor
+                if (comp_area <= max_area_allowed and
+                    geom["solidity"] >= concave_min_cluster_solidity and
+                    geom.get("aspect_ratio", 1.0) <= concave_max_cluster_aspect_ratio):
+                    labeled_cnc, cnc_count, _ = split_cluster_concave_neck(roi_mask, min_piece_area_px=min_valid_area_px)
+                    if cnc_count > 1:
+                        for lbl in range(1, cnc_count + 1):
+                            sub_m = (labeled_cnc == lbl)
+                            instance_mask[roi_slice][sub_m] = current_grain_id
+                            grain_diags[current_grain_id] = {
+                                "status": GrainStatus.SEPARATED_FROM_CLUSTER.value,
+                                "parent_component_id": comp_idx,
+                                "solidity": geom["solidity"],
+                                "component_area": comp_area,
+                                "sub_area": int(np.sum(sub_m)),
+                                "was_split": True,
+                                "split_method": "concave_neck"
+                            }
+                            current_grain_id += 1
+                        clusters_split_by_concave += 1
+                        clusters_split += 1
+                        cluster_grains += cnc_count
+                        continue
+
             clusters_unres += 1
             instance_mask[roi_slice][roi_mask > 0] = current_grain_id
             grain_diags[current_grain_id] = {"status": GrainStatus.UNDER_SEGMENTED_CLUSTER.value, "parent_component_id": comp_idx, "solidity": geom["solidity"], "component_area": comp_area, "was_split": False}
@@ -305,6 +336,7 @@ def separate_touching_grains(
         "clusters_successfully_split": clusters_split,
         "clusters_unresolved": clusters_unres,
         "grains_derived_from_clusters": cluster_grains,
+        "clusters_split_by_concave": clusters_split_by_concave,
         "fragments_count": fragments_cnt,
     }
     return instance_mask, grain_diags, summary

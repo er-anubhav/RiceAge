@@ -69,7 +69,6 @@ AI_CLASSES = [
     "broken",
     "chalky",
     "damaged",
-    "dehusked",
     "discoloured",
     "foreign_matter",
     "whole"
@@ -77,6 +76,7 @@ AI_CLASSES = [
 
 _CACHED_RESNET = None
 _CACHED_DEVICE = None
+_CACHED_WEIGHTS_PATH = None
 _CACHED_ONNX_SESS = None
 _CACHED_ONNX_PATH = None
 
@@ -95,7 +95,14 @@ def _get_onnx_session(onnx_path: str):
         providers = [p for p in ["DmlExecutionProvider", "CPUExecutionProvider"] if p in available]
         if not providers:
             providers = ["CPUExecutionProvider"]
-        sess = ort.InferenceSession(onnx_path, providers=providers)
+
+        # High-performance threading & graph optimizations for ARM Cortex-A76 4 cores
+        opts = ort.SessionOptions()
+        opts.intra_op_num_threads = 4
+        opts.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
+        opts.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+
+        sess = ort.InferenceSession(onnx_path, sess_options=opts, providers=providers)
         _CACHED_ONNX_SESS = sess
         _CACHED_ONNX_PATH = onnx_path
         return sess
@@ -104,31 +111,36 @@ def _get_onnx_session(onnx_path: str):
         return None
 
 
+_CACHED_MODELS = {}
+
 def _get_classifier_model(weights_path: str, device_str: Optional[str] = None):
-    global _CACHED_RESNET, _CACHED_DEVICE
+    global _CACHED_MODELS
     if not _TORCH_AVAILABLE:
         return None, None
     device = torch.device(device_str if device_str else ("cuda:0" if torch.cuda.is_available() else "cpu"))
 
-    if _CACHED_RESNET is not None and _CACHED_DEVICE == device:
-        return _CACHED_RESNET, device
+    cache_key = (os.path.abspath(weights_path), str(device))
+    if cache_key in _CACHED_MODELS:
+        return _CACHED_MODELS[cache_key], device
 
     if not os.path.exists(weights_path):
         return None, device
 
+    checkpoint = torch.load(weights_path, map_location=device, weights_only=False)
+    sd = checkpoint["model_state_dict"] if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint else checkpoint
+
     model = models.resnet50(weights=None)
     in_features = model.fc.in_features
+    fc_out = sd["fc.1.weight"].shape[0] if "fc.1.weight" in sd else len(AI_CLASSES)
     model.fc = nn.Sequential(
         nn.Dropout(p=0.3),
-        nn.Linear(in_features, len(AI_CLASSES))
+        nn.Linear(in_features, fc_out)
     )
-    checkpoint = torch.load(weights_path, map_location=device)
-    model.load_state_dict(checkpoint["model_state_dict"])
+    model.load_state_dict(sd)
     model.to(device)
     model.eval()
 
-    _CACHED_RESNET = model
-    _CACHED_DEVICE = device
+    _CACHED_MODELS[cache_key] = model
     return model, device
 
 
@@ -142,7 +154,7 @@ def _make_square_crop_224(crop: np.ndarray, target_size: int = 224) -> np.ndarra
     y_off = (max_dim - h) // 2
     x_off = (max_dim - w) // 2
     canvas[y_off:y_off + h, x_off:x_off + w] = crop
-    return cv2.resize(canvas, (target_size, target_size), interpolation=cv2.INTER_LANCZOS4 if max_dim < target_size else cv2.INTER_AREA)
+    return cv2.resize(canvas, (target_size, target_size), interpolation=cv2.INTER_LINEAR)
 
 
 def classify_grains_ai(
@@ -201,8 +213,9 @@ def classify_grains_ai(
     # Extract crops and optical features
     crop_tensors = []
     opt_features = []
+    crops_to_infer_indices = []
 
-    for _, row in df.iterrows():
+    for idx_row, (_, row) in enumerate(df.iterrows()):
         bx = int(row.get("x", row.get("bbox_x", 0)))
         by = int(row.get("y", row.get("bbox_y", 0)))
         bw = int(row.get("width", row.get("bbox_w", 0)))
@@ -216,15 +229,8 @@ def classify_grains_ai(
 
         raw_crop = original_bgr[y1:y2, x1:x2]
         sq_crop = _make_square_crop_224(raw_crop, target_size=224)
-        sq_rgb = cv2.cvtColor(sq_crop, cv2.COLOR_BGR2RGB)
-        if is_onnx:
-            norm_rgb = sq_rgb.astype(np.float32) / 255.0
-            norm_rgb = (norm_rgb - np.array([0.485, 0.456, 0.406], dtype=np.float32)) / np.array([0.229, 0.224, 0.225], dtype=np.float32)
-            crop_tensors.append(np.transpose(norm_rgb, (2, 0, 1)))
-        else:
-            crop_tensors.append(transform(sq_rgb))
 
-        # Optical forensic features
+        # Fast optical forensic features for pre-screening & accuracy verification
         gray = cv2.cvtColor(sq_crop, cv2.COLOR_BGR2GRAY)
         ret, otsu = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
@@ -237,51 +243,110 @@ def classify_grains_ai(
 
         r_v = core_bgr[:, 2].astype(np.float32)
         g_v = core_bgr[:, 1].astype(np.float32)
+        b_v = core_bgr[:, 0].astype(np.float32)
         rg = float(np.mean(r_v / np.maximum(g_v, 1.0)))
+        rb_diff = float(np.mean(r_v - b_v))
 
         v_vals = core_hsv[:, 2].astype(np.float32)
         s_vals = core_hsv[:, 1].astype(np.float32)
         std_v = float(np.std(v_vals))
         med_v = float(np.median(v_vals))
+        sat_mean = float(np.mean(s_vals))
 
         pinhole_ratio = float(np.sum(v_vals < 0.60 * med_v)) / max(float(len(v_vals)), 1.0)
         chalky_ratio = float(np.sum((v_vals >= 170) & (s_vals <= 35))) / max(float(len(v_vals)), 1.0)
 
         opt_features.append({
             "rg_ratio": rg,
+            "rb_diff": rb_diff,
+            "sat_mean": sat_mean,
             "core_std_v": std_v,
             "pinhole_ratio": pinhole_ratio,
             "chalky_ratio": chalky_ratio
         })
 
-    # Inference in batches (ONNX Runtime vs PyTorch)
-    probs_list = []
-    if is_onnx:
-        batch_size = 128
-        for b_start in range(0, len(crop_tensors), batch_size):
-            batch = np.stack(crop_tensors[b_start:b_start + batch_size], axis=0)
-            logits = onnx_sess.run(None, {"input": batch})[0]
-            exp_l = np.exp(logits - np.max(logits, axis=1, keepdims=True))
-            probs = exp_l / np.sum(exp_l, axis=1, keepdims=True)
-            probs_list.extend(probs)
+        # ACCELERATION FILTER (Selective Inference):
+        # Only normalize and queue tensor if grain has potential defect or morphology anomaly.
+        # Boundary grains and unresolved clusters are already non-AI classified.
+        status = row.get("separation_status", "")
+        is_boundary = row.get("is_boundary", False)
+        length = row["length_px"]
+        ar = row["aspect_ratio"]
+        is_broken = (length < broken_cutoff) or (ar < 1.15) or (length < small_broken_cutoff)
+
+        # Selective Deep Defect Inference:
+        # Physical brokenness is already 100% measured by calibrated contour length (Codex CXS 198).
+        # We only queue crops for ResNet-50 when optical signatures indicate possible defect:
+        needs_ai = (not is_boundary) and (status != "under_segmented_cluster") and (
+            chalky_ratio > 0.28 or rg > 1.030 or rb_diff > 12.0 or pinhole_ratio > 0.025 or std_v > 16.0
+        )
+
+        if needs_ai:
+            sq_rgb = cv2.cvtColor(sq_crop, cv2.COLOR_BGR2RGB)
+            if is_onnx:
+                norm_rgb = sq_rgb.astype(np.float32) / 255.0
+                norm_rgb = (norm_rgb - np.array([0.485, 0.456, 0.406], dtype=np.float32)) / np.array([0.229, 0.224, 0.225], dtype=np.float32)
+                crop_tensors.append(np.transpose(norm_rgb, (2, 0, 1)))
+            else:
+                crop_tensors.append(transform(sq_rgb))
+            crops_to_infer_indices.append(idx_row)
+
+    # Determine exact output dimension of active model
+    if onnx_sess:
+        try:
+            num_classes = onnx_sess.get_outputs()[0].shape[1]
+            if isinstance(num_classes, str): num_classes = 5
+        except Exception:
+            num_classes = 5
     else:
-        batch_size = 64
-        with torch.no_grad():
+        num_classes = 6
+
+    default_sound_prob = np.zeros(num_classes, dtype=np.float32)
+    if num_classes >= 6:
+        default_sound_prob[-1] = 0.98  # whole class is at index -1
+
+    probs_list = [default_sound_prob.copy() for _ in range(len(df))]
+
+    if len(crop_tensors) > 0:
+        inferred_probs = []
+        if is_onnx:
+            batch_size = 128
             for b_start in range(0, len(crop_tensors), batch_size):
-                batch = torch.stack(crop_tensors[b_start:b_start + batch_size]).to(device)
-                with torch.amp.autocast("cuda") if "cuda" in str(device) else torch.no_grad():
-                    logits = model(batch)
-                probs = torch.softmax(logits.float(), dim=1).cpu().numpy()
-                probs_list.extend(probs)
+                batch = np.stack(crop_tensors[b_start:b_start + batch_size], axis=0)
+                logits = onnx_sess.run(None, {"input": batch})[0]
+                exp_l = np.exp(logits - np.max(logits, axis=1, keepdims=True))
+                probs = exp_l / np.sum(exp_l, axis=1, keepdims=True)
+                inferred_probs.extend(probs)
+        else:
+            batch_size = 64
+            with torch.no_grad():
+                for b_start in range(0, len(crop_tensors), batch_size):
+                    batch = torch.stack(crop_tensors[b_start:b_start + batch_size]).to(device)
+                    with torch.amp.autocast("cuda") if "cuda" in str(device) else torch.no_grad():
+                        logits = model(batch)
+                    probs = torch.softmax(logits.float(), dim=1).cpu().numpy()
+                    inferred_probs.extend(probs)
+
+        for orig_idx, prob_v in zip(crops_to_infer_indices, inferred_probs):
+            probs_list[orig_idx] = prob_v
 
     tray_median_rg = float(np.median([m["rg_ratio"] for m in opt_features])) if opt_features else 1.0
     tray_median_std = float(np.median([m["core_std_v"] for m in opt_features])) if opt_features else 15.0
 
-    IDX = {name: i for i, name in enumerate(AI_CLASSES)}
+    prob_dim = len(probs_list[0]) if len(probs_list) > 0 else 5
+    if prob_dim == 7:
+        active_classes = ["broken", "chalky", "damaged", "dehusked", "discoloured", "foreign_matter", "whole"]
+    elif prob_dim == 6:
+        active_classes = ["broken", "chalky", "damaged", "discoloured", "foreign_matter", "whole"]
+    else:
+        # 5-class defect model: defects only, whole rice inferred by low defect sum
+        active_classes = ["broken", "chalky", "damaged", "discoloured", "foreign_matter"]
+    IDX = {name: i for i, name in enumerate(active_classes)}
 
     quality_classes = []
     defects_list = []
     is_sound_list = []
+    is_broken_list = []
     confidences = []
     reasons = []
 
@@ -294,6 +359,7 @@ def classify_grains_ai(
             quality_classes.append("UNRESOLVED_CLUSTER")
             defects_list.append(["cluster"])
             is_sound_list.append(False)
+            is_broken_list.append(False)
             confidences.append(1.0)
             reasons.append("Multi-grain cluster unresolved by watershed")
             continue
@@ -301,6 +367,7 @@ def classify_grains_ai(
             quality_classes.append("BOUNDARY_TRUNCATED")
             defects_list.append(["boundary"])
             is_sound_list.append(False)
+            is_broken_list.append(False)
             confidences.append(1.0)
             reasons.append("Touches scanner boundary margin")
             continue
@@ -310,18 +377,25 @@ def classify_grains_ai(
         pinhole_ratio = opt["pinhole_ratio"]
         chalky_ratio = opt["chalky_ratio"]
 
-        p_broken = prob_vec[IDX["broken"]]
-        p_chalky = prob_vec[IDX["chalky"]]
-        p_damaged = prob_vec[IDX["damaged"]]
-        p_dehusked = prob_vec[IDX["dehusked"]]
-        p_discoloured = prob_vec[IDX["discoloured"]]
-        p_foreign = prob_vec[IDX["foreign_matter"]]
-        p_whole = prob_vec[IDX["whole"]]
+        p_broken = float(prob_vec[IDX["broken"]]) if "broken" in IDX and IDX["broken"] < len(prob_vec) else 0.0
+        p_chalky = float(prob_vec[IDX["chalky"]]) if "chalky" in IDX and IDX["chalky"] < len(prob_vec) else 0.0
+        p_damaged = float(prob_vec[IDX["damaged"]]) if "damaged" in IDX and IDX["damaged"] < len(prob_vec) else 0.0
+        p_discoloured = float(prob_vec[IDX["discoloured"]]) if "discoloured" in IDX and IDX["discoloured"] < len(prob_vec) else 0.0
+        p_foreign = float(prob_vec[IDX["foreign_matter"]]) if "foreign_matter" in IDX and IDX["foreign_matter"] < len(prob_vec) else 0.0
+        if "whole" in IDX and IDX["whole"] < len(prob_vec):
+            p_whole = float(prob_vec[IDX["whole"]])
+        else:
+            p_whole = max(0.0, 1.0 - (p_broken + p_chalky + p_damaged + p_discoloured + p_foreign))
 
         is_small_broken = (length < small_broken_cutoff)
-        is_broken = (length < broken_cutoff) or (ar < broken_aspect_ratio_thresh) or is_small_broken
+        # Broken strictly governed by standard length cutoff (< 75% of median unbroken length)
+        # Aspect ratio alone does not make a grain broken unless extremely fragmented (ar < 1.15)
+        is_broken = (length < broken_cutoff) or (ar < 1.15) or is_small_broken
 
-        has_oxidation = (rg_ratio > 1.025 * tray_median_rg)
+        has_oxidation = (rg_ratio > 1.012 * tray_median_rg) and (rg_ratio >= 1.042 or p_discoloured > 0.40)
+        rb_diff = opt.get("rb_diff", 0.0)
+        sat_mean = opt.get("sat_mean", 0.0)
+
         has_mottled = (core_std_v > 1.25 * tray_median_std)
         has_pinhole = (pinhole_ratio > 0.04)
 
@@ -330,46 +404,38 @@ def classify_grains_ai(
 
         grain_defects = []
         if not is_low_res:
-            if (p_damaged > 0.35 and (has_oxidation or has_mottled or has_pinhole)) or (p_damaged > 0.65 and (has_oxidation or has_mottled)):
+            if (p_damaged > 0.40 and (has_oxidation or has_mottled or has_pinhole)) or (p_damaged > 0.65):
                 grain_defects.append("damaged")
-            if (p_chalky > p_whole and chalky_ratio > 0.15) or (p_chalky > 0.32 and chalky_ratio > 0.25):
+            if (p_chalky > 0.40 and chalky_ratio > 0.50) or (chalky_ratio >= 0.78):
                 grain_defects.append("chalky")
-            if (p_discoloured > p_whole and has_oxidation) or (p_discoloured > 0.35 and has_oxidation and not has_mottled):
+            if (p_discoloured > 0.35 and rg_ratio >= 1.042) or (p_discoloured > 0.70 and rg_ratio >= 1.035) or (has_oxidation and p_discoloured > p_whole):
                 grain_defects.append("discoloured")
-            if p_dehusked > 0.45:
-                grain_defects.append("dehusked")
         else:
             # Low-resolution images (downsampled thumbnails): require high confidence + physical signatures
-            if p_damaged > 0.75 and (has_oxidation or has_pinhole):
+            if p_damaged > 0.70 and (has_oxidation or has_pinhole):
                 grain_defects.append("damaged")
-            if p_chalky > 0.60 and chalky_ratio > 0.30:
+            if (p_chalky > 0.60 and chalky_ratio > 0.50) or (chalky_ratio >= 0.78):
                 grain_defects.append("chalky")
             if p_discoloured > 0.70 and has_oxidation:
                 grain_defects.append("discoloured")
-            if p_dehusked > 0.60:
-                grain_defects.append("dehusked")
 
         # Assign primary Quality Class (FutureDefectTaxonomy)
-        if p_foreign > 0.40 or rg_ratio > 1.15:
+        if p_foreign >= 0.85 or (rb_diff > 25.0 and p_foreign > 0.30):
             q_class = FutureDefectTaxonomy.FOREIGN_MATERIAL.value
-            conf = float(p_foreign)
-            reason = "Foreign non-grain material detected"
-        elif "damaged" in grain_defects:
+            conf = float(max(p_foreign, 0.95))
+            reason = f"Foreign non-grain material / paddy husk detected (R-B={rb_diff:.1f})"
+        elif "damaged" in grain_defects or p_damaged > 0.60:
             q_class = FutureDefectTaxonomy.DAMAGED_RICE.value
             conf = float(p_damaged)
             reason = f"Damaged: oxidation R/G={rg_ratio:.3f}, texture std={core_std_v:.1f}"
-        elif "chalky" in grain_defects:
-            q_class = FutureDefectTaxonomy.CHALKY_RICE.value
-            conf = float(p_chalky)
-            reason = f"Chalky endosperm core opacity ratio={chalky_ratio:.2f}"
         elif "discoloured" in grain_defects:
             q_class = FutureDefectTaxonomy.DISCOLORED_RICE.value
-            conf = float(p_discoloured)
+            conf = float(max(p_discoloured, 0.88))
             reason = f"Discoloured amber/yellow tint R/G={rg_ratio:.3f}"
-        elif "dehusked" in grain_defects:
-            q_class = FutureDefectTaxonomy.OTHER_GRAIN.value
-            conf = float(p_dehusked)
-            reason = "Dehusked / Unmilled paddy grain"
+        elif "chalky" in grain_defects:
+            q_class = FutureDefectTaxonomy.CHALKY_RICE.value
+            conf = float(max(p_chalky, min(1.0, chalky_ratio)))
+            reason = f"Chalky endosperm core opacity ratio={chalky_ratio:.2f}"
         elif is_small_broken:
             q_class = FutureDefectTaxonomy.SMALL_BROKEN_RICE.value
             conf = float(max(p_broken, 0.90))
@@ -386,12 +452,14 @@ def classify_grains_ai(
         quality_classes.append(q_class)
         defects_list.append(grain_defects)
         is_sound_list.append(len(grain_defects) == 0 and not is_broken)
+        is_broken_list.append(bool(is_broken or is_small_broken))
         confidences.append(round(conf, 3))
         reasons.append(reason)
 
     df["quality_class"] = quality_classes
     df["defects"] = defects_list
     df["is_sound"] = is_sound_list
+    df["is_broken"] = is_broken_list
     df["confidence"] = confidences
     df["classification_reason"] = reasons
     df["estimated_mass_g"] = [
@@ -456,6 +524,9 @@ def classify_grains_rule_based(
         elif length < broken_cutoff or ar < broken_aspect_ratio_thresh:
             quality_classes.append(RealDataTaxonomy.BROKEN_RICE.value)
             reasons.append(f"Broken: Length {length:.1f}px < 75% of median unbroken ({median_whole_length:.1f}px)")
+        elif (row.get("mean_r", 0) - row.get("mean_b", 0) >= 6.0) or (float(row.get("mean_r", 0)) / max(float(row.get("mean_g", 1.0)), 1.0) >= 1.015):
+            quality_classes.append(FutureDefectTaxonomy.DISCOLORED_RICE.value)
+            reasons.append(f"Discoloured amber/yellow tint: R-B={row.get('mean_r', 0) - row.get('mean_b', 0):.1f}, R/G={float(row.get('mean_r', 0))/max(float(row.get('mean_g', 1.0)), 1.0):.3f}")
         else:
             quality_classes.append(RealDataTaxonomy.WHOLE_RICE.value)
             reasons.append("Length >= 75% median unbroken length and aspect ratio >= 1.6")
@@ -504,9 +575,15 @@ def compute_quality_metrics(
     whole_mask = df_rice["quality_class"] == FutureDefectTaxonomy.WHOLE_RICE.value
     broken_mask = df_rice["quality_class"] == FutureDefectTaxonomy.BROKEN_RICE.value
     small_broken_mask = df_rice["quality_class"] == FutureDefectTaxonomy.SMALL_BROKEN_RICE.value
-    chalky_mask = df_rice["quality_class"] == FutureDefectTaxonomy.CHALKY_RICE.value
-    damaged_mask = df_rice["quality_class"] == FutureDefectTaxonomy.DAMAGED_RICE.value
-    discoloured_mask = df_rice["quality_class"] == FutureDefectTaxonomy.DISCOLORED_RICE.value
+
+    if "defects" in df_rice.columns:
+        chalky_mask = (df_rice["quality_class"] == FutureDefectTaxonomy.CHALKY_RICE.value) | df_rice["defects"].apply(lambda d: "chalky" in d if isinstance(d, (list, set, tuple)) else False)
+        damaged_mask = (df_rice["quality_class"] == FutureDefectTaxonomy.DAMAGED_RICE.value) | df_rice["defects"].apply(lambda d: "damaged" in d if isinstance(d, (list, set, tuple)) else False)
+        discoloured_mask = (df_rice["quality_class"] == FutureDefectTaxonomy.DISCOLORED_RICE.value) | df_rice["defects"].apply(lambda d: "discoloured" in d if isinstance(d, (list, set, tuple)) else False)
+    else:
+        chalky_mask = df_rice["quality_class"] == FutureDefectTaxonomy.CHALKY_RICE.value
+        damaged_mask = df_rice["quality_class"] == FutureDefectTaxonomy.DAMAGED_RICE.value
+        discoloured_mask = df_rice["quality_class"] == FutureDefectTaxonomy.DISCOLORED_RICE.value
 
     # Counts
     c_whole = int(whole_mask.sum())
@@ -568,35 +645,42 @@ def compute_quality_metrics(
         "total_sample_mass_g": round(total_mass, 4),
     }
 
-    # Grade determination based on Codex / APSCSCL Mass Basis limits
-    mb = mass_basis
-    is_grade_1 = (
-        mb["whole_pct"] >= 75.0 and
-        mb["broken_pct"] <= 15.0 and
-        mb["small_broken_pct"] <= 1.0 and
-        mb["chalky_pct"] <= 3.0 and
-        mb["damaged_pct"] <= 2.0 and
-        mb["discoloured_pct"] <= 1.0 and
-        mb["foreign_matter_pct"] <= 0.5
-    )
-    is_grade_2 = (
-        mb["whole_pct"] >= 65.0 and
-        mb["total_broken_pct"] <= 25.0 and
-        mb["damaged_pct"] <= 4.0 and
-        mb["foreign_matter_pct"] <= 1.0
+    # Explicitly mark optical mass as NOT_PHYSICALLY_MEASURED and suspend statutory mass grading
+    mass_basis["mass_measurement_status"] = "NOT_PHYSICALLY_MEASURED"
+    mass_basis["is_physically_measured"] = False
+    mass_basis["statutory_grading_suspended"] = True
+    mass_basis["statutory_mass_disclaimer"] = "Optical mass is an uncalibrated geometric proxy. Prohibited from statutory procurement grading without calibrated physical load cell."
+
+    # 3-tier pre-inspection optical screening evaluation (Advisory only; non-certified)
+    # Uses count-basis optical measurements; preserves count metrics separately
+    cb = count_basis
+    optical_meets_thresholds = (
+        cb["whole_pct"] >= 75.0 and
+        cb["broken_pct"] <= 15.0 and
+        cb["small_broken_pct"] <= 1.0 and
+        cb["chalky_pct"] <= 3.0 and
+        cb["damaged_pct"] <= 2.0 and
+        cb["discoloured_pct"] <= 1.0 and
+        cb["foreign_matter_pct"] <= 0.5
     )
 
-    if is_grade_1:
-        grade = "Grade 1 (Conforming to APSCSCL Specifications)"
-    elif is_grade_2:
-        grade = "Grade 2 (Commercial Standard)"
+    if optical_meets_thresholds:
+        screening_verdict = "PASS"
+        grade = "Grade 1 (Pre-Inspection Optical Criteria Met - Lab Confirmation Required)"
     else:
-        grade = "Sub-Standard / Out of Specification"
+        screening_verdict = "FLAG"
+        grade = "FLAG (Optical Defect Limit Exceeded - Lab Confirmation Required)"
 
     return {
         "count_basis": count_basis,
         "mass_basis": mass_basis,
         "commercial_grade": grade,
+        "screening_verdict": screening_verdict,
+        "decision_tier": screening_verdict,
+        "statutory_compliance_status": "REQUIRES_LAB_CONFIRMATION",
+        "mass_measurement_status": "NOT_PHYSICALLY_MEASURED",
+        "statutory_mass_usable": False,
+        "statutory_grading_suspended": True,
         "total_grains": total_count,
         "total_mass_g": round(total_mass, 4)
     }

@@ -51,11 +51,16 @@ def test_dual_platen_manager_processing(tmp_path):
     res = mgr.run_dual_analysis(p1_path, p2_path, sample_id="TEST-001", composite_output_path=comp_path)
 
     assert res["status"] == "Complete"
-    assert res["total_grains"] == 3
+    # Safe fallback selects bottom platen (2 grains), preventing sample doubling
+    assert res["total_grains"] == 2
+    assert res["is_sample_doubling_prevented"] is True
+    assert res["fallback_mode"] == "SAFE_SINGLE_VIEW_SELECTION"
     assert "bottom" in res["platens"]
     assert "top" in res["platens"]
     assert res["platens"]["bottom"]["grains_detected"] == 2
     assert res["platens"]["top"]["grains_detected"] == 1
     assert "mass_basis" in res
     assert "count_basis" in res
+    assert res["mass_measurement_status"] == "NOT_PHYSICALLY_MEASURED"
+    assert res["is_physically_measured"] is False
     assert os.path.exists(comp_path)

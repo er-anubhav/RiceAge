@@ -7,6 +7,7 @@ records are available; never accept features from the browser.
 from __future__ import annotations
 
 import json
+import math
 import sqlite3
 import time
 from pathlib import Path
@@ -81,7 +82,19 @@ class FeedbackStore:
 
     @staticmethod
     def _json(value: Any) -> str:
-        return json.dumps(value if value is not None else {}, separators=(",", ":"), allow_nan=False)
+        def _sanitize(obj):
+            if isinstance(obj, float):
+                if math.isnan(obj) or math.isinf(obj):
+                    return None
+                return obj
+            elif isinstance(obj, dict):
+                return {k: _sanitize(v) for k, v in obj.items()}
+            elif isinstance(obj, (list, tuple)):
+                return [_sanitize(v) for v in obj]
+            return obj
+
+        sanitized = _sanitize(value) if value is not None else {}
+        return json.dumps(sanitized if sanitized is not None else {}, separators=(",", ":"), allow_nan=False)
 
     def cache_scan_grains(
         self,
@@ -216,6 +229,12 @@ class FeedbackStore:
         with self._connect() as conn:
             return int(conn.execute(
                 "SELECT COUNT(*) FROM feedback_audit WHERE trained = 0"
+            ).fetchone()[0])
+
+    def get_total_corrections(self) -> int:
+        with self._connect() as conn:
+            return int(conn.execute(
+                "SELECT COUNT(*) FROM feedback_audit"
             ).fetchone()[0])
 
     def get_pending_records(self, limit: int | None = None) -> list[dict[str, Any]]:

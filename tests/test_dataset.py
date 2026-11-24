@@ -10,9 +10,16 @@ from src.dataset import (
     AnnotatedGrain,
 )
 
+DATASET_DIR = "data/dataset"
+skip_if_no_dataset = pytest.mark.skipif(
+    not os.path.exists(DATASET_DIR),
+    reason="Training dataset 'data/dataset' not available in repository checkout"
+)
 
+
+@skip_if_no_dataset
 def test_validate_dataset():
-    val = validate_dataset("data/dataset")
+    val = validate_dataset(DATASET_DIR)
     assert val["is_valid"]
     assert val["total_images"] == 119
     assert val["total_grains"] == 2529
@@ -20,8 +27,9 @@ def test_validate_dataset():
     assert val["missing_annotated_images"] == 0
 
 
+@skip_if_no_dataset
 def test_load_dataset_and_filtering():
-    cat = load_dataset("data/dataset")
+    cat = load_dataset(DATASET_DIR)
     assert len(cat) == 119
     assert cat.total_grains == 2529
 
@@ -32,8 +40,9 @@ def test_load_dataset_and_filtering():
     assert len(broken_imgs) == 20
 
 
+@skip_if_no_dataset
 def test_dataset_split_no_leakage():
-    cat = load_dataset("data/dataset")
+    cat = load_dataset(DATASET_DIR)
     train, val, test = cat.split(seed=42)
     assert len(train) + len(val) + len(test) == 119
 

@@ -6,6 +6,7 @@ import math
 import numpy as np
 import pandas as pd
 import cv2
+from scipy.ndimage import find_objects
 
 from src.preprocessing import CalibrationResult, is_boundary_grain
 
@@ -194,68 +195,117 @@ def measure_all_grains(
 ) -> Tuple[pd.DataFrame, List[Dict[str, Any]]]:
     img_h, img_w = instance_mask.shape[:2]
     records = []
-    
-    unique_ids = np.unique(instance_mask)
-    unique_ids = unique_ids[unique_ids > 0]
 
-    for gid in unique_ids:
-        diag = grain_diagnostics.get(int(gid), {})
+    # High-Performance Localized Extraction via find_objects (single-pass C routine ~0.02s)
+    slices = find_objects(instance_mask)
+
+    for idx, slc in enumerate(slices):
+        if slc is None:
+            continue
+        gid = idx + 1
+        diag = grain_diagnostics.get(gid, {})
         status = diag.get("status", "unknown")
 
-        grain_pixel_mask = (instance_mask == gid).astype(np.uint8) * 255
-        
-        morph = extract_grain_morphology(
-            grain_id=int(gid),
-            grain_mask=grain_pixel_mask,
-            image_shape=(img_h, img_w),
-            cleared_margins=cleared_margins,
-            calibration=calibration,
-            separation_status=status
-        )
+        y_slice, x_slice = slc
+        pad = 2
+        y1 = max(0, y_slice.start - pad)
+        y2 = min(img_h, y_slice.stop + pad)
+        x1 = max(0, x_slice.start - pad)
+        x2 = min(img_w, x_slice.stop + pad)
 
-        if morph is None or morph.area_px < min_area_px:
+        sub_inst = instance_mask[y1:y2, x1:x2]
+        local_mask = (sub_inst == gid).astype(np.uint8) * 255
+        contours, _ = cv2.findContours(local_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        if not contours:
             continue
 
-        color = extract_grain_color(
-            grain_id=int(gid),
-            rgb_image=image_rgb,
-            grain_mask=grain_pixel_mask
-        )
+        c = max(contours, key=cv2.contourArea)
+        area = cv2.contourArea(c)
+        if area < min_area_px:
+            continue
+
+        peri = cv2.arcLength(c, True)
+        bx, by, bw, bh = cv2.boundingRect(c)
+        # Offset to global coordinates
+        global_x = int(bx + x1)
+        global_y = int(by + y1)
+
+        cx_l, cy_l = _compute_centroid(c)
+        cx = float(cx_l + x1)
+        cy = float(cy_l + y1)
+
+        length, width, angle = _compute_oriented_dimensions(c)
+        ar = float(length / (width + 1e-5))
+
+        circ = float(4.0 * math.pi * area / ((peri + 1e-5) ** 2))
+        circ = min(1.0, max(0.0, circ))
+
+        hull = cv2.convexHull(c)
+        hull_area = cv2.contourArea(hull)
+        solidity = float(area / (hull_area + 1e-5))
+        solidity = min(1.0, max(0.0, solidity))
+
+        extent = float(area / (bw * bh + 1e-5))
+        boundary_flag = is_boundary_grain((global_x, global_y, bw, bh), (img_h, img_w), cleared_margins)
+
+        length_mm, width_mm, area_mm2 = None, None, None
+        if calibration and calibration.pixel_scale_mm is not None:
+            scale = calibration.pixel_scale_mm
+            length_mm = round(length * scale, 3)
+            width_mm = round(width * scale, 3)
+            area_mm2 = round(area * (scale ** 2), 3)
+
+        # Localized fast color extraction
+        sub_rgb = image_rgb[y1:y2, x1:x2]
+        grain_pixels = local_mask > 0
+        r_vals = sub_rgb[:, :, 0][grain_pixels]
+        g_vals = sub_rgb[:, :, 1][grain_pixels]
+        b_vals = sub_rgb[:, :, 2][grain_pixels]
+
+        mean_r = float(np.mean(r_vals)) if len(r_vals) > 0 else 0.0
+        mean_g = float(np.mean(g_vals)) if len(g_vals) > 0 else 0.0
+        mean_b = float(np.mean(b_vals)) if len(b_vals) > 0 else 0.0
+
+        gray_vals = 0.299 * r_vals + 0.587 * g_vals + 0.114 * b_vals
+        mean_int = float(np.mean(gray_vals)) if len(gray_vals) > 0 else 0.0
+        std_int = float(np.std(gray_vals)) if len(gray_vals) > 0 else 0.0
+        highlight_count = np.sum(gray_vals >= 240)
+        highlight_ratio = float(highlight_count / max(1, len(gray_vals)))
+        cov = std_int / (mean_int + 1e-5)
+        uniformity = float(max(0.0, 1.0 - cov))
 
         row = {
-            "grain_id": morph.grain_id,
-            "x": morph.bbox_x,
-            "y": morph.bbox_y,
-            "width": morph.bbox_w,
-            "height": morph.bbox_h,
-            "centroid_x": morph.centroid_x,
-            "centroid_y": morph.centroid_y,
-            "area_px": morph.area_px,
-            "perimeter_px": morph.perimeter_px,
-            "length_px": morph.length_px,
-            "width_px": morph.width_px,
-            "aspect_ratio": morph.aspect_ratio,
-            "orientation_deg": morph.orientation_deg,
-            "circularity": morph.circularity,
-            "solidity": morph.solidity,
-            "extent": morph.extent,
-            "is_boundary": morph.is_boundary,
-            "separation_status": morph.separation_status,
+            "grain_id": gid,
+            "x": global_x,
+            "y": global_y,
+            "width": int(bw),
+            "height": int(bh),
+            "centroid_x": round(cx, 2),
+            "centroid_y": round(cy, 2),
+            "area_px": round(area, 1),
+            "perimeter_px": round(peri, 2),
+            "length_px": round(length, 2),
+            "width_px": round(width, 2),
+            "aspect_ratio": round(ar, 3),
+            "orientation_deg": round(angle, 1),
+            "circularity": round(circ, 3),
+            "solidity": round(solidity, 3),
+            "extent": round(extent, 3),
+            "is_boundary": boundary_flag,
+            "separation_status": status,
+            "mean_r": round(mean_r, 1),
+            "mean_g": round(mean_g, 1),
+            "mean_b": round(mean_b, 1),
+            "mean_intensity": round(mean_int, 1),
+            "std_intensity": round(std_int, 1),
+            "highlight_ratio": round(highlight_ratio, 3),
+            "uniformity": round(uniformity, 3),
         }
 
-        if morph.length_mm is not None:
-            row["length_mm"] = morph.length_mm
-            row["width_mm"] = morph.width_mm
-            row["area_mm2"] = morph.area_mm2
-
-        if color:
-            row["mean_r"] = color.mean_r
-            row["mean_g"] = color.mean_g
-            row["mean_b"] = color.mean_b
-            row["mean_intensity"] = color.mean_intensity
-            row["std_intensity"] = color.std_intensity
-            row["highlight_ratio"] = color.highlight_ratio
-            row["uniformity"] = color.uniformity
+        if length_mm is not None:
+            row["length_mm"] = length_mm
+            row["width_mm"] = width_mm
+            row["area_mm2"] = area_mm2
 
         records.append(row)
 

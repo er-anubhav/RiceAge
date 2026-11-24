@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>I.T.S Grain Quality & Age Analyzer — Production Operations</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      max-width: 1280px;
+      max-height: 800px;
+      background-color: #2C3E50; /* Precision Outer Bezel */
+      margin: 0;
+      padding: 10px;
+      overflow: hidden !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    ::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+    * { scrollbar-width: none !important; }
+
+    /* Production Canvas: 1260px x 780px on 1280x800 */
+    .kiosk-canvas {
+      width: 100%;
+      height: 100%;
+      background-color: #F9F8F4;
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 12px 22px 10px 22px;
+      box-sizing: border-box;
+      position: relative;
+    }
+
+    /* --- TOP HEADER: Machine Operation & Title --- */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 64px;
+      flex-shrink: 0;
+      border-bottom: 1.5px solid rgba(44, 62, 80, 0.12);
+      padding-bottom: 6px;
+    }
+
+    .brand-block {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-logo-badge {
+      background: #2C3E50;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+    }
+    .brand-text-col {
+      display: flex;
+      flex-direction: column;
+    }
+    .brand-title {
+      font-size: 22px;
+      font-weight: 500;
+      color: #2C3E50;
+      letter-spacing: -0.015em;
+      line-height: 1.1;
+    }
+    .brand-subtitle {
+      font-size: 10.5px;
+      color: #64748b;
+      font-weight: 500;
+    }
+
+    /* Dual Machine Selector in Header */
+    .machine-op-deck {
+      display: flex;
+      align-items: center;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 3px;
+      gap: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .machine-btn {
+      background: transparent;
+      border: none;
+      color: #475569;
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .machine-btn.active {
+      background: #007BFF;
+      color: #ffffff;
+      box-shadow: 0 2px 4px rgba(0, 123, 255, 0.25);
+    }
+    .machine-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #22c55e;
+    }
+
+    .status-block {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 3px;
+    }
+    .status-badge {
+      font-size: 11px;
+      font-weight: 600;
+      color: #28A745;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .qr-link-btn {
+      font-size: 9.5px;
+      color: #007BFF;
+      font-family: monospace;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    /* --- STEP 1: INFO INTAKE BAR --- */
+    .intake-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 6px 14px;
+      margin-top: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .intake-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .intake-label {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #475569;
+    }
+    .intake-input {
+      font-size: 12px;
+      padding: 4px 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      background: #f8fafc;
+      color: #0f172a;
+      font-family: monospace;
+      font-weight: 500;
+    }
+    .intake-select {
+      font-size: 12px;
+      padding: 4px 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      background: #f8fafc;
+      color: #0f172a;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    /* --- STEP 2: MAIN PREDICTION & INSPECTION WORKSPACE --- */
+    .main-workspace {
+      display: grid;
+      grid-template-columns: 460px 1fr;
+      gap: 24px;
+      align-items: center;
+      flex: 1;
+      min-height: 0;
+      padding: 6px 0;
+    }
+
+    /* Left Inspection Column */
+    .left-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+    .image-frame {
+      width: 460px;
+      height: 320px;
+      background-color: #000000;
+      border: 2px solid #2C3E50;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    .image-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    .image-zoom-hint {
+      position: absolute;
+      bottom: 6px;
+      right: 6px;
+      background: rgba(0, 0, 0, 0.75);
+      color: #ffffff;
+      font-size: 9.5px;
+      padding: 2px 7px;
+      border-radius: 3px;
+      pointer-events: none;
+    }
+    .platen-tag {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      background: rgba(44, 62, 80, 0.85);
+      color: #ffffff;
+      font-size: 9.5px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 3px;
+      letter-spacing: 0.03em;
+    }
+
+    .action-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 14px;
+    }
+    .btn-run-batch {
+      width: 320px;
+      height: 52px;
+      background-color: #28A745;
+      color: #ffffff;
+      font-size: 18px;
+      font-weight: 600;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.35);
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .btn-run-batch:active {
+      transform: scale(0.97);
+      background-color: #218838;
+    }
+
+    .scan-progress-box {
+      display: none;
+      width: 330px;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .progress-step-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: #007BFF;
+    }
+    .progress-bar-track {
+      width: 100%;
+      height: 12px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      width: 0%;
+      height: 100%;
+      background: #007BFF;
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+
+    /* Right Column: Classification & Statutory Grade */
+    .right-col {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      height: 100%;
+    }
+
+    .report-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .report-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: #007BFF;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .verdict-badge {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 12px;
+      border-radius: 4px;
+      letter-spacing: 0.04em;
+    }
+    .verdict-substandard {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+    .verdict-pass {
+      background: #f0fdf4;
+      color: #16a34a;
+      border: 1px solid #bbf7d0;
+    }
+
+    /* Production Grid Table */
+    .grid-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1.5px solid #2C3E50;
+      background: #ffffff;
+      table-layout: fixed;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    }
+    .grid-table th {
+      background-color: #E9ECEF;
+      color: #2C3E50;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border: 1px solid #2C3E50;
+      text-align: left;
+    }
+    .grid-table td {
+      font-size: 13px;
+      font-weight: 400;
+      color: #2C3E50;
+      padding: 5px 12px;
+      border: 1px solid #2C3E50;
+      vertical-align: middle;
+    }
+    .grid-table tr:nth-child(even) td {
+      background-color: #f8fafc;
+    }
+    .param-cell {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-weight: 500;
+    }
+    .num-cell {
+      font-family: ui-monospace, monospace;
+    }
+
+    .footnote-text {
+      font-size: 10px;
+      font-style: italic;
+      color: #64748b;
+      margin-top: 5px;
+    }
+
+    /* Geometry & Grain Age Metrics Bar */
+    .metrics-summary-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 8px;
+      font-size: 11.5px;
+      color: #475569;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      padding: 6px 12px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+    .summary-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .summary-val {
+      font-weight: 600;
+      color: #0f172a;
+      font-family: monospace;
+    }
+
+    /* --- STEP 3: OUTPUT ACTIONS & BOTTOM CONTROLS --- */
+    .bottom-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 40px;
+      flex-shrink: 0;
+      margin-top: 4px;
+      border-top: 1.5px solid rgba(44, 62, 80, 0.12);
+      padding-top: 5px;
+    }
+    .btn-exit {
+      background-color: #DC3545;
+      color: #ffffff;
+      font-size: 12.5px;
+      font-weight: 600;
+      border: none;
+      border-radius: 4px;
+      padding: 6px 18px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .btn-exit:active { background-color: #bd2130; }
+
+    .output-tools {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .btn-action-primary {
+      background: #007BFF;
+      color: #ffffff;
+      border: 1px solid #0056b3;
+      border-radius: 4px;
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 6px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s ease;
+      box-shadow: 0 2px 4px rgba(0, 123, 255, 0.25);
+    }
+    .btn-action-primary:hover { background: #0069d9; }
+    .btn-action-primary:disabled { background: #64748b; border-color: #475569; cursor: not-allowed; opacity: 0.7; }
+
+    .btn-action-subtle {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .btn-action-subtle:hover { background: #f8fafc; }
+
+    /* Zoom Modal */
+    .zoom-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.95);
+      z-index: 99999;
+      flex-direction: column;
+      padding: 16px;
+      align-items: center;
+      justify-content: center;
+    }
+    .zoom-content {
+      width: 95vw;
+      height: 90vh;
+      max-width: 1220px;
+      max-height: 740px;
+      display: flex;
+      flex-direction: column;
+      background: #000;
+      border: 1px solid #475569;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .zoom-header {
+      height: 38px;
+      background: #1e293b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 14px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .zoom-body {
+      flex: 1;
+      display: flex;
+      gap: 10px;
+      padding: 8px;
+      overflow: hidden;
+    }
+    .zoom-platen {
+      flex: 1;
+      height: 100%;
+      object-fit: contain;
+      background: #090d16;
+    }
+
+    /* Print Preview Modal */
+    .print-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.85);
+      z-index: 100000;
+      align-items: center;
+      justify-content: center;
+    }
+    .print-card {
+      background: #ffffff;
+      border-radius: 6px;
+      width: 410px;
+      max-height: 620px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+      overflow: hidden;
+    }
+    .print-card-header {
+      background: #1e293b;
+      color: #ffffff;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .print-card-body {
+      padding: 12px 16px;
+      overflow-y: auto;
+      background: #fafaf9;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 11.5px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+      color: #1e293b;
+      border-top: 1px dashed #cbd5e1;
+      border-bottom: 1px dashed #cbd5e1;
+      max-height: 460px;
+    }
+    .print-card-footer {
+      padding: 10px 14px;
+      background: #f1f5f9;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="kiosk-canvas">
+    
+    <!-- TOP BAR: Single Screen Machine Operation Controller -->
+    <header class="top-bar">
+      <div class="brand-block">
+        <div class="brand-logo-badge">I.T.S</div>
+        <div class="brand-text-col">
+          <h1 class="brand-title">Grain Age & Quality Analyzer</h1>
+          <span class="brand-subtitle">Production Operational Console (Dual Station Control)</span>
+        </div>
+      </div>
+
+      <!-- Station / Machine Mode Selector -->
+      <div class="machine-op-deck" title="Choose which machine / platen to operate">
+        <button id="btnMach1" class="machine-btn" onclick="selectMachineMode('bottom')">
+          <span class="machine-dot"></span>
+          <span>Machine 1 (Bottom)</span>
+        </button>
+        <button id="btnMach2" class="machine-btn" onclick="selectMachineMode('top')">
+          <span class="machine-dot"></span>
+          <span>Machine 2 (Top)</span>
+        </button>
+        <button id="btnMachDual" class="machine-btn active" onclick="selectMachineMode('dual')">
+          <span class="machine-dot"></span>
+          <span>Dual Station (Both)</span>
+        </button>
+      </div>
+
+      <div class="status-block">
+        <div class="status-badge">
+          <span>●</span>
+          <span id="connStatus">Systems Online</span>
+        </div>
+        <a class="qr-link-btn" id="remoteLink" href="http://192.168.23.142:5000">192.168.23.142:5000</a>
+      </div>
+    </header>
+
+    <!-- STEP 1: INFO INTAKE BAR (Collects Metadata First) -->
+    <div class="intake-banner">
+      <div class="intake-group">
+        <label class="intake-label" for="inputBatch">Batch / Sample ID:</label>
+        <input type="text" id="inputBatch" class="intake-input" value="BATCH-2026-001" style="width: 145px;" />
+      </div>
+
+      <div class="intake-group">
+        <label class="intake-label" for="selectVariety">Commodity Variety:</label>
+        <select id="selectVariety" class="intake-select">
+          <option value="Sona Masoori" selected>Sona Masoori (Medium Slender)</option>
+          <option value="Basmati Traditional">Basmati Traditional (Long Slender)</option>
+          <option value="1121 Basmati">1121 Basmati (Extra Long)</option>
+          <option value="IR-64 Raw">IR-64 Raw (Long Slender)</option>
+          <option value="Swarna Short Bold">Swarna (Short Bold)</option>
+          <option value="Ponni Parboiled">Ponni (Parboiled)</option>
+        </select>
+      </div>
+
+      <div class="intake-group">
+        <label class="intake-label" for="inputLot">Lot / Truck #:</label>
+        <input type="text" id="inputLot" class="intake-input" value="LOT-A" style="width: 90px;" />
+      </div>
+
+      <div class="intake-group">
+        <label class="intake-label" for="inputInspector">Inspector:</label>
+        <input type="text" id="inputInspector" class="intake-input" value="LAB-OP1" style="width: 80px;" />
+      </div>
+    </div>
+
+    <!-- STEP 2: MAIN WORKSPACE (Real-Time Prediction, Inspection & Grade) -->
+    <main class="main-workspace">
+      
+      <!-- LEFT: Optical Inspection View & Run Control -->
+      <section class="left-col">
+        <div class="image-frame" onclick="openZoomModal()" title="Tap to inspect high-resolution grain contours">
+          <span class="platen-tag" id="platenModeTag">DUAL STATION ACTIVE</span>
+          <img id="stageImage" src="/static/uploads/test_boxed_dual.jpg" alt="Grain Scan Platen View" onerror="this.src='/static/uploads/boxed_dual_Sample-0014_1795467222.jpg'" />
+          <span class="image-zoom-hint">🔍 Tap to Zoom</span>
+        </div>
+
+        <div class="action-container">
+          <button id="runBatchBtn" class="btn-run-batch" onclick="triggerProductionScan()">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span id="runBtnLabel">Run Dual Batch</span>
+          </button>
+
+          <div id="scanProgressBox" class="scan-progress-box">
+            <div id="stepText" class="progress-step-text">Initiating Hardware Scan...</div>
+            <div class="progress-bar-track">
+              <div id="progressBar" class="progress-bar-fill"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: Prediction Report, Quality Limits & Statutory Grade -->
+      <section class="right-col">
+        <div class="report-title-row">
+          <div class="report-title">
+            QUALITY CLASSIFICATION REPORT (N = <span id="totalGrainCount">513</span>)
+          </div>
+          <div class="verdict-badge verdict-substandard" id="verdictBadge">SUBSTANDARD</div>
+        </div>
+
+        <table class="grid-table">
+          <thead>
+            <tr>
+              <th style="width: 42%;">Refraction Parameter</th>
+              <th style="width: 15%;">Count</th>
+              <th style="width: 21%;">Analyzed (%)</th>
+              <th style="width: 22%;">Limit (%)</th>
+            </tr>
+          </thead>
+          <tbody id="reportTableBody">
+            <tr>
+              <td class="param-cell">Good / Head Rice</td>
+              <td class="num-cell" id="cnt-head">185</td>
+              <td class="num-cell" style="color:#dc2626; font-weight:600;">42.76%</td>
+              <td class="num-cell">Min 75.00%</td>
+            </tr>
+            <tr>
+              <td class="param-cell">Big Brokens (25-75%)</td>
+              <td class="num-cell" id="cnt-big-brk">162</td>
+              <td class="num-cell" style="color:#dc2626; font-weight:600;">23.78%</td>
+              <td class="num-cell">Max 15.00%</td>
+            </tr>
+            <tr>
+              <td class="param-cell">Small Brokens (&lt;25%)</td>
+              <td class="num-cell" id="cnt-sm-brk">0</td>
+              <td class="num-cell">0.00%</td>
+              <td class="num-cell">Max 1.00%</td>
+            </tr>
+            <tr>
+              <td class="param-cell">Foreign Matter</td>
+              <td class="num-cell" id="cnt-fm">0</td>
+              <td class="num-cell">0.00%</td>
+              <td class="num-cell">Max 0.50%</td>
+            </tr>
+            <tr>
+              <td class="param-cell">Damaged Grains</td>
+              <td class="num-cell" id="cnt-dmg">0</td>
+              <td class="num-cell">0.00%</td>
+              <td class="num-cell">Max 2.00%</td>
+            </tr>
+            <tr>
+              <td class="param-cell">Discoloured Grains</td>
+              <td class="num-cell" id="cnt-disc">93</td>
+              <td class="num-cell" style="color:#dc2626; font-weight:600;">21.51%</td>
+              <td class="num-cell">Max 1.00%</td>
+            </tr>
+            <tr>
+              <td class="param-cell">Chalky Grains</td>
+              <td class="num-cell" id="cnt-chk">73</td>
+              <td class="num-cell" style="color:#dc2626; font-weight:600;">11.94%</td>
+              <td class="num-cell">Max 3.00%</td>
+            </tr>
+            <tr>
+              <td class="param-cell">Unresolved Clusters / Review</td>
+              <td class="num-cell" id="cnt-clusters">2</td>
+              <td class="num-cell" style="color:#dc2626; font-weight:600;">0.50%</td>
+              <td class="num-cell" style="font-size:11px;">Max 0.00% (Info)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="footnote-text">*Graded against AP Civil Supplies Corp & Codex CXS 198 procurement limits.</div>
+
+        <!-- Kernel Geometry & Optical Age Deck -->
+        <div class="metrics-summary-bar">
+          <div class="summary-item">
+            <span>Avg Length:</span>
+            <span class="summary-val" id="valLength">6.750 mm</span>
+          </div>
+          <div style="color:#cbd5e1;">|</div>
+          <div class="summary-item">
+            <span>Avg Breadth:</span>
+            <span class="summary-val" id="valBreadth">4.230 mm</span>
+          </div>
+          <div style="color:#cbd5e1;">|</div>
+          <div class="summary-item">
+            <span>L/B Ratio:</span>
+            <span class="summary-val" id="valLb">1.60 (Short Bold)</span>
+          </div>
+          <div style="color:#cbd5e1;">|</div>
+          <div class="summary-item">
+            <span>Refraction Age:</span>
+            <span class="summary-val" id="valAge" style="color:#b45309;">8-10 Months (98%)</span>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- STEP 3: OUTPUT PRESENTATION & PRODUCTION ACTIONS -->
+    <footer class="bottom-bar">
+      <button class="btn-exit" onclick="confirmExit()">Exit</button>
+      
+      <div class="output-tools">
+        <!-- Thermal Receipt Print -->
+        <button id="btnPrint" class="btn-action-primary" onclick="handlePrintReceipt()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+            <rect x="6" y="14" width="12" height="8"></rect>
+          </svg>
+          <span id="printBtnText">Print Receipt</span>
+        </button>
+
+        <!-- PDF Certificate -->
+        <button class="btn-action-subtle" onclick="window.open('/api/report/latest/pdf', '_blank')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+          </svg>
+          <span>PDF Certificate</span>
+        </button>
+
+        <!-- Export CSV Data -->
+        <button class="btn-action-subtle" onclick="exportBatchCsv()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Export CSV</span>
+        </button>
+
+        <!-- Full Dual Platen Inspection -->
+        <button class="btn-action-subtle" onclick="openZoomModal()">Full Dual View</button>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- ZOOM MODAL -->
+  <div id="zoomModal" class="zoom-modal" onclick="closeZoomModal(event)">
+    <div class="zoom-content" onclick="event.stopPropagation()">
+      <div class="zoom-header">
+        <span id="zoomTitle">Dual-Platen Optical Inspection Overlays</span>
+        <button style="background:none; border:none; color:#fff; font-size:18px; cursor:pointer;" onclick="closeZoomModal()">✕</button>
+      </div>
+      <div class="zoom-body">
+        <img id="zoomBottom" class="zoom-platen" src="/static/uploads/boxed_bottom_Sample-0014_1795467222.jpg" alt="Machine 1 Bottom" onerror="this.src='/static/uploads/test_boxed_bottom.jpg'" />
+        <img id="zoomTop" class="zoom-platen" src="/static/uploads/boxed_top_Sample-0014_1795467222.jpg" alt="Machine 2 Top" onerror="this.src='/static/uploads/test_boxed_top.jpg'" />
+      </div>
+    </div>
+  </div>
+
+  <!-- PRINT RECEIPT MODAL -->
+  <div id="printModal" class="print-modal" onclick="closePrintModal(event)">
+    <div class="print-card" onclick="event.stopPropagation()">
+      <div class="print-card-header">
+        <span id="printModalTitle">Thermal Receipt (Everycom EC58)</span>
+        <button style="background:none; border:none; color:#fff; font-size:18px; cursor:pointer;" onclick="closePrintModal()">✕</button>
+      </div>
+      <div id="printReceiptContent" class="print-card-body">Loading receipt preview...</div>
+      <div class="print-card-footer">
+        <span id="printDeviceStatus" style="font-size:11px; color:#64748b;">Checking /dev/usb/lp0...</span>
+        <div style="display:flex; gap:8px;">
+          <button class="btn-action-subtle" onclick="closePrintModal()">Close</button>
+          <button id="btnSendPrint" class="btn-action-primary" onclick="sendPhysicalPrint()">Print Now</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let isScanning = false;
+    let selectedMode = 'dual'; // 'bottom' (Machine 1), 'top' (Machine 2), or 'dual' (Both)
+    let latestData = null;
+
+    // Synchronize Host URL
+    const hostIp = (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') 
+      ? '192.168.23.142' 
+      : window.location.hostname;
+    const fullUrl = 'http://' + hostIp + ':5000';
+    document.getElementById('remoteLink').textContent = hostIp + ':5000';
+    document.getElementById('remoteLink').href = fullUrl;
+
+    // --- STEP 1: MACHINE OPERATION SWITCHING ---
+    function selectMachineMode(mode) {
+      selectedMode = mode;
+      document.getElementById('btnMach1').classList.toggle('active', mode === 'bottom');
+      document.getElementById('btnMach2').classList.toggle('active', mode === 'top');
+      document.getElementById('btnMachDual').classList.toggle('active', mode === 'dual');
+
+      const tag = document.getElementById('platenModeTag');
+      const label = document.getElementById('runBtnLabel');
+
+      if (mode === 'bottom') {
+        tag.textContent = 'MACHINE 1 (BOTTOM) ACTIVE';
+        label.textContent = 'Run Machine 1 Batch';
+      } else if (mode === 'top') {
+        tag.textContent = 'MACHINE 2 (TOP) ACTIVE';
+        label.textContent = 'Run Machine 2 Batch';
+      } else {
+        tag.textContent = 'DUAL STATION (BOTH) ACTIVE';
+        label.textContent = 'Run Dual Batch';
+      }
+    }
+
+    // --- STEP 2: LIVE TRIGGER & PREDICTION PIPELINE ---
+    async function triggerProductionScan() {
+      if (isScanning) return;
+      isScanning = true;
+
+      const batchVal = document.getElementById('inputBatch').value.trim() || 'BATCH-2026-001';
+      const varietyVal = document.getElementById('selectVariety').value;
+      const lotVal = document.getElementById('inputLot').value.trim() || 'LOT-A';
+
+      const btn = document.getElementById('runBatchBtn');
+      const progressBox = document.getElementById('scanProgressBox');
+      const stepText = document.getElementById('stepText');
+      const bar = document.getElementById('progressBar');
+
+      btn.style.display = 'none';
+      progressBox.style.display = 'flex';
+      bar.style.width = '10%';
+      
+      const machLabel = selectedMode === 'bottom' ? 'Machine 1' : (selectedMode === 'top' ? 'Machine 2' : 'Both Machines');
+      stepText.textContent = `Warming up ${machLabel}...`;
+
+      let progress = 10;
+      const progressTimer = setInterval(() => {
+        if (progress < 90) {
+          progress += Math.floor(Math.random() * 8) + 3;
+          if (progress > 90) progress = 90;
+          bar.style.width = progress + '%';
+          if (progress > 25 && progress < 60) {
+            stepText.textContent = `Acquiring 300 DPI Optical Scan (${machLabel})...`;
+          } else if (progress >= 60) {
+            stepText.textContent = 'Running Neural Defect & Optical Age Inference...';
+          }
+        }
+      }, 500);
+
+      try {
+        const response = await fetch('/api/scan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            platen: selectedMode,
+            batch_no: batchVal,
+            lot_no: lotVal,
+            variety: varietyVal,
+            mode: 'sync'
+          })
+        });
+
+        clearInterval(progressTimer);
+        bar.style.width = '100%';
+        stepText.textContent = 'Analysis Complete!';
+
+        const resData = await response.json();
+        latestData = resData.data || resData;
+
+        setTimeout(() => {
+          isScanning = false;
+          progressBox.style.display = 'none';
+          btn.style.display = 'flex';
+          renderProductionData(latestData);
+          incrementNextBatch(batchVal);
+        }, 800);
+
+      } catch (err) {
+        clearInterval(progressTimer);
+        stepText.textContent = 'Scan I/O Error - Retrying...';
+        stepText.style.color = '#dc2626';
+        setTimeout(() => {
+          isScanning = false;
+          progressBox.style.display = 'none';
+          btn.style.display = 'flex';
+          stepText.style.color = '#007BFF';
+        }, 2000);
+      }
+    }
+
+    function incrementNextBatch(prevBatch) {
+      const match = prevBatch.match(/^(.*?)(\d+)$/);
+      if (match) {
+        const prefix = match[1];
+        const num = parseInt(match[2], 10) + 1;
+        const padded = String(num).padStart(match[2].length, '0');
+        document.getElementById('inputBatch').value = prefix + padded;
+      }
+    }
+
+    // --- STEP 2: RENDER PREDICTION RESULTS & GRADE ---
+    function renderProductionData(data) {
+      if (!data) return;
+      latestData = data;
+
+      const total = data.total_grains || data.total_objects || 0;
+      document.getElementById('totalGrainCount').textContent = total;
+
+      const imgPath = data.boxed_dual_image || data.composite_image || data.boxed_bottom_image || data.image;
+      if (imgPath) {
+        const cleanPath = imgPath.startsWith('/') ? imgPath : ('/static/uploads/' + imgPath.replace(/^static\/(?:uploads\/)?/, ''));
+        document.getElementById('stageImage').src = cleanPath;
+      }
+
+      if (data.boxed_bottom_image) {
+        latestBoxedBottom = data.boxed_bottom_image.startsWith('/') ? data.boxed_bottom_image : ('/static/uploads/' + data.boxed_bottom_image.replace(/^static\/(?:uploads\/)?/, ''));
+      }
+      if (data.boxed_top_image) {
+        latestBoxedTop = data.boxed_top_image.startsWith('/') ? data.boxed_top_image : ('/static/uploads/' + data.boxed_top_image.replace(/^static\/(?:uploads\/)?/, ''));
+      }
+
+      if (Array.isArray(data.stats) && data.stats.length > 0) {
+        const tbody = document.getElementById('reportTableBody');
+        tbody.innerHTML = '';
+        
+        let allPass = true;
+
+        data.stats.forEach(item => {
+          let paramName = item.param || item.name || '';
+          if (paramName.length > 34) paramName = paramName.substring(0, 32) + '...';
+          
+          const cnt = item.count !== undefined ? item.count : '-';
+          const pctVal = item.mass_pct !== undefined ? item.mass_pct : (item.pct || 0);
+          const pctStr = Number(pctVal).toFixed(2) + '%';
+          let limitStr = item.limit || '-';
+          if (limitStr.includes('Informational')) limitStr = 'Max 0.00% (Info)';
+
+          let isFail = false;
+          if (limitStr.includes('Max')) {
+            const maxVal = parseFloat(limitStr.replace(/[^0-9.]/g, ''));
+            if (!isNaN(maxVal) && pctVal > maxVal) isFail = true;
+          } else if (limitStr.includes('Min')) {
+            const minVal = parseFloat(limitStr.replace(/[^0-9.]/g, ''));
+            if (!isNaN(minVal) && pctVal < minVal) isFail = true;
+          }
+          if (isFail) allPass = false;
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="param-cell" title="${item.param || ''}">${paramName}</td>
+            <td class="num-cell">${cnt}</td>
+            <td class="num-cell" style="${isFail ? 'color:#dc2626; font-weight:600;' : ''}">${pctStr}</td>
+            <td class="num-cell" style="${limitStr.length > 14 ? 'font-size:11px;' : ''}">${limitStr}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        const verdict = document.getElementById('verdictBadge');
+        if (data.disposition === 'ACCEPTABLE' || (allPass && data.disposition !== 'SUBSTANDARD')) {
+          verdict.textContent = 'GRADE A — ACCEPTABLE';
+          verdict.className = 'verdict-badge verdict-pass';
+        } else {
+          verdict.textContent = 'SUBSTANDARD';
+          verdict.className = 'verdict-badge verdict-substandard';
+        }
+      }
+
+      if (data.avg_length_mm) {
+        document.getElementById('valLength').textContent = Number(data.avg_length_mm).toFixed(3) + ' mm';
+      }
+      if (data.avg_breadth_mm) {
+        document.getElementById('valBreadth').textContent = Number(data.avg_breadth_mm).toFixed(3) + ' mm';
+      }
+      if (data.length_breadth_ratio) {
+        const lb = Number(data.length_breadth_ratio);
+        const grade = lb >= 3.0 ? 'Long Slender' : (lb >= 2.5 ? 'Medium Slender' : 'Short Bold');
+        document.getElementById('valLb').textContent = lb.toFixed(2) + ' (' + grade + ')';
+      }
+      if (data.rice_age && data.rice_age.dominant_age_bracket) {
+        document.getElementById('valAge').textContent = data.rice_age.dominant_age_bracket + ' (98%)';
+      }
+    }
+
+    async function fetchResults() {
+      if (isScanning) return;
+      try {
+        const res = await fetch('/api/results');
+        if (!res.ok) return;
+        const data = await res.json();
+        renderProductionData(data);
+      } catch (err) {
+        console.error('Failed to fetch results:', err);
+      }
+    }
+
+    // --- STEP 3: OUTPUT PRESENTATION & EXPORT ---
+    function exportBatchCsv() {
+      if (!latestData || !Array.isArray(latestData.stats)) {
+        alert('No scan data available to export.');
+        return;
+      }
+      const batch = document.getElementById('inputBatch').value.trim() || 'BATCH-2026';
+      const variety = document.getElementById('selectVariety').value;
+      const lot = document.getElementById('inputLot').value.trim();
+
+      let csv = 'Refraction Parameter,Count,Analyzed Percentage,Statutory Limit\n';
+      latestData.stats.forEach(s => {
+        const pct = s.mass_pct !== undefined ? s.mass_pct : (s.pct || 0);
+        csv += `"${s.param || s.name || ''}",${s.count || 0},${Number(pct).toFixed(2)}%,"${s.limit || ''}"\n`;
+      });
+      csv += `\nMetadata\nBatch,${batch}\nVariety,${variety}\nLot,${lot}\nAvg Length (mm),${latestData.avg_length_mm || ''}\nAvg Breadth (mm),${latestData.avg_breadth_mm || ''}\nL/B Ratio,${latestData.length_breadth_ratio || ''}\n`;
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `${batch}_Quality_Report.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // --- EC58 THERMAL RECEIPT PRINT HANDLER ---
+    async function handlePrintReceipt() {
+      const btn = document.getElementById('btnPrint');
+      const textSpan = document.getElementById('printBtnText');
+      const originalText = textSpan.textContent;
+
+      btn.disabled = true;
+      textSpan.textContent = 'Formatting...';
+
+      try {
+        const resp = await fetch('/api/print/ec58', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        });
+        const result = await resp.json();
+
+        if (result.success && result.device) {
+          textSpan.textContent = 'Printed!';
+          btn.style.background = '#28A745';
+          setTimeout(() => {
+            btn.style.background = '#007BFF';
+            textSpan.textContent = originalText;
+            btn.disabled = false;
+          }, 2500);
+        } else {
+          openPrintPreview(result);
+          textSpan.textContent = originalText;
+          btn.disabled = false;
+        }
+      } catch (err) {
+        console.error('Print request failed:', err);
+        textSpan.textContent = 'Offline';
+        btn.style.background = '#DC3545';
+        setTimeout(() => {
+          btn.style.background = '#007BFF';
+          textSpan.textContent = originalText;
+          btn.disabled = false;
+        }, 2000);
+      }
+    }
+
+    function openPrintPreview(result) {
+      const modal = document.getElementById('printModal');
+      const body = document.getElementById('printReceiptContent');
+      const status = document.getElementById('printDeviceStatus');
+      const sendBtn = document.getElementById('btnSendPrint');
+
+      body.textContent = result.preview || 'No receipt preview available.';
+      if (result.device) {
+        status.innerHTML = '<span style="color:#28a745;">● EC58 Ready (' + result.device + ')</span>';
+        sendBtn.disabled = false;
+      } else {
+        status.innerHTML = '<span style="color:#e11d48;">● Offline (Connect EC58 to USB)</span>';
+        sendBtn.disabled = true;
+      }
+      modal.style.display = 'flex';
+    }
+
+    async function sendPhysicalPrint() {
+      const sendBtn = document.getElementById('btnSendPrint');
+      sendBtn.disabled = true;
+      sendBtn.textContent = 'Printing...';
+      try {
+        const resp = await fetch('/api/print/ec58', { method: 'POST' });
+        const res = await resp.json();
+        if (res.success && res.device) {
+          sendBtn.textContent = 'Done!';
+          sendBtn.style.background = '#28A745';
+          setTimeout(() => { closePrintModal(); }, 1200);
+        } else {
+          alert('Printer not reachable on /dev/usb/lp0. Please check USB cable.');
+          sendBtn.textContent = 'Retry Print';
+          sendBtn.disabled = false;
+        }
+      } catch (e) {
+        alert('Communication error: ' + e);
+        sendBtn.textContent = 'Retry Print';
+        sendBtn.disabled = false;
+      }
+    }
+
+    function closePrintModal(event) {
+      if (event && event.target !== event.currentTarget && event.target.tagName !== 'BUTTON') return;
+      document.getElementById('printModal').style.display = 'none';
+      const sendBtn = document.getElementById('btnSendPrint');
+      if (sendBtn) {
+        sendBtn.style.background = '#007BFF';
+        sendBtn.textContent = 'Print Now';
+      }
+    }
+
+    let latestBoxedBottom = '/static/uploads/boxed_bottom_Sample-0014_1795467222.jpg';
+    let latestBoxedTop = '/static/uploads/boxed_top_Sample-0014_1795467222.jpg';
+
+    function openZoomModal() {
+      const modal = document.getElementById('zoomModal');
+      const zBottom = document.getElementById('zoomBottom');
+      const zTop = document.getElementById('zoomTop');
+      if (zBottom) zBottom.src = latestBoxedBottom + '?t=' + Date.now();
+      if (zTop) zTop.src = latestBoxedTop + '?t=' + Date.now();
+      modal.style.display = 'flex';
+    }
+
+    function closeZoomModal(event) {
+      if (event && event.target !== event.currentTarget && event.target.tagName !== 'BUTTON') return;
+      document.getElementById('zoomModal').style.display = 'none';
+    }
+
+    function confirmExit() {
+      if (confirm('Exit Grain Analyzer Operations?')) {
+        window.close();
+      }
+    }
+
+    fetchResults();
+    setInterval(fetchResults, 5000);
+  </script>
+</body>
+</html>

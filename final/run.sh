@@ -18,6 +18,14 @@ export DISPLAY="${DISPLAY:-:0}"
 export WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-wayland-0}"
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 
+# Hardware Scanner Calibration and Platen Mode
+export RICEAGE_BOTTOM_DPI="${RICEAGE_BOTTOM_DPI:-300}"
+export RICEAGE_TOP_DPI="${RICEAGE_TOP_DPI:-300}"
+export RICEAGE_SCAN_PLATEN="${RICEAGE_SCAN_PLATEN:-dual}"
+export RICEAGE_DUAL_VIEW_MODE="${RICEAGE_DUAL_VIEW_MODE:-bottom_primary_verification}"
+export SCANNER_BOTTOM_ID="${SCANNER_BOTTOM_ID:-airscan:e0:Canon LiDE 400 Bottom}"
+export SCANNER_TOP_ID="${SCANNER_TOP_ID:-airscan:e1:Canon LiDE 400 Top}"
+
 # Ensure proper screen orientation on Addi-Data HDMI Touchscreen
 if command -v wlr-randr >/dev/null 2>&1; then
     wlr-randr --output HDMI-A-1 --transform normal 2>/dev/null || true

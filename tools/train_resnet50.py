@@ -92,7 +92,7 @@ def main():
     test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False, num_workers=2, pin_memory=True)
 
     # Initialize Pretrained ResNet-50
-    print("\nLoading pretrained ResNet-50 backbone...", flush=True)
+    print("\nInitializing ResNet-50 architecture...", flush=True)
     model = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
     in_features = model.fc.in_features
     # Add dropout layer before final classification for regularization
@@ -100,11 +100,35 @@ def main():
         nn.Dropout(p=0.3),
         nn.Linear(in_features, num_classes)
     )
+
+    # Warm-start from previous grain checkpoint if available
+    warm_start_path = output_dir / "best_resnet50.pth"
+    if not warm_start_path.exists():
+        warm_start_path = output_dir / "best_resnet50_backup.pth"
+    if warm_start_path.exists():
+        print(f"Warm-starting backbone from previous checkpoint: {warm_start_path}...", flush=True)
+        try:
+            ckpt = torch.load(str(warm_start_path), map_location="cpu", weights_only=False)
+            sd = ckpt["model_state_dict"] if "model_state_dict" in ckpt else ckpt
+            # Filter out fc classifier head if class count changed
+            filtered_sd = {k: v for k, v in sd.items() if not k.startswith("fc") and k in model.state_dict() and v.shape == model.state_dict()[k].shape}
+            model.load_state_dict(filtered_sd, strict=False)
+            print(f"Successfully loaded {len(filtered_sd)} backbone weight layers!", flush=True)
+        except Exception as e:
+            print(f"Could not load warm-start weights ({e}), continuing with ImageNet weights.", flush=True)
+
     model = model.to(device)
 
     criterion = FocalLoss(alpha=alpha_tensor, gamma=2.0)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4, weight_decay=1e-4)
-    epochs = 15
+    # Differential learning rate: gentle on backbone, aggressive on classifier head
+    backbone_params = [p for n, p in model.named_parameters() if not n.startswith("fc")]
+    head_params = [p for n, p in model.named_parameters() if n.startswith("fc")]
+    optimizer = torch.optim.AdamW([
+        {"params": backbone_params, "lr": 5e-5},
+        {"params": head_params, "lr": 2e-4}
+    ], weight_decay=1e-4)
+
+    epochs = 10
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs, eta_min=1e-6)
     scaler = torch.amp.GradScaler("cuda")
 
@@ -207,6 +231,20 @@ def main():
         if total_c > 0:
             acc_c = (np.sum(all_test_preds[mask] == c_idx) / total_c) * 100.0
             print(f"  {c_name:15s}: {acc_c:6.2f}% ({total_c} samples)", flush=True)
+
+    try:
+        from sklearn.metrics import classification_report, confusion_matrix
+        print("\n=== DETAILED CLASSIFICATION REPORT (PRECISION / RECALL / F1) ===", flush=True)
+        report_str = classification_report(all_test_targets, all_test_preds, target_names=class_names, digits=4)
+        print(report_str, flush=True)
+        with open(output_dir / "classification_report.txt", "w", encoding="utf-8") as f_rep:
+            f_rep.write(report_str)
+
+        cm = confusion_matrix(all_test_targets, all_test_preds)
+        print("Confusion Matrix:\n", cm, flush=True)
+        np.save(str(output_dir / "confusion_matrix.npy"), cm)
+    except Exception as e:
+        print(f"Could not generate classification report: {e}", flush=True)
 
     # Export to ONNX (MIT license safe)
     onnx_path = output_dir / "grain_resnet50.onnx"

@@ -10,7 +10,17 @@ import time
 from pathlib import Path
 import paramiko
 
-CM5_HOST = "192.168.16.160"
+def resolve_cm5_host():
+    import socket
+    for candidate in ["bigb-cm5.local", "192.168.23.142", "192.168.16.160"]:
+        try:
+            ip = socket.gethostbyname(candidate)
+            return ip
+        except Exception:
+            pass
+    return "192.168.23.142"
+
+CM5_HOST = resolve_cm5_host()
 CM5_PORT = 22
 CM5_USER = "bigb-cm5"
 CM5_PASS = "Pingpong@123"
@@ -45,12 +55,9 @@ def upload_file(sftp, local_path, remote_path):
 def get_ssh_client():
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    print("Connecting to CM5 via SSH...")
     
-    # Try connecting directly or binding to the Wi-Fi adapter if multiple NICs exist
     import socket
     sock = None
-    # Check if we can bind to the local Wi-Fi interface
     for bind_ip in ["192.168.22.27", ""]:
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -64,11 +71,7 @@ def get_ssh_client():
             if s:
                 s.close()
     
-    # Try key-based auth first, then password
-    try:
-        ssh.connect(CM5_HOST, port=CM5_PORT, username=CM5_USER, sock=sock, timeout=10)
-    except Exception:
-        ssh.connect(CM5_HOST, port=CM5_PORT, username=CM5_USER, password=CM5_PASS, sock=sock, timeout=10)
+    ssh.connect(CM5_HOST, port=CM5_PORT, username=CM5_USER, password=CM5_PASS, sock=sock, timeout=8)
     return ssh
 
 def main():

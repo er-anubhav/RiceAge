@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Grain quality audit</title>
+</head>
+<body>
+    <h1>Grain quality audit</h1>
+    <div id="labels">
+        {% for k, v in labels.items() %}
+            <span>{{ k }}: {{ v }}</span>
+        {% endfor %}
+    </div>
+</body>
+</html>

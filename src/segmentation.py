@@ -36,7 +36,7 @@ def _segment_yolo_onnx(
     weights_path: str,
     conf_threshold: float = 0.25,
     imgsz: int = 1280,
-    max_det: int = 2000
+    max_det: int = 3000
 ) -> Tuple[np.ndarray, np.ndarray, Dict[int, Dict[str, Any]], Dict[str, Any]]:
     global _CACHED_YOLO_ONNX_SESS, _CACHED_YOLO_ONNX_PATH
     import onnxruntime as ort
@@ -78,16 +78,59 @@ def _segment_yolo_onnx(
     clean_mask = np.zeros((h0, w0), dtype=np.uint8)
     temp_diagnostics: Dict[int, Dict[str, Any]] = {}
 
+    raw_nms_count = 0
+    cap_reached = False
+    truncated_count = 0
+
     if len(boxes) > 0:
         x1 = boxes[:, 0] - boxes[:, 2] / 2
         y1 = boxes[:, 1] - boxes[:, 3] / 2
         bw = boxes[:, 2]
         bh = boxes[:, 3]
         nms_boxes = [[int(x1[i]), int(y1[i]), int(bw[i]), int(bh[i])] for i in range(len(boxes))]
-        indices = cv2.dnn.NMSBoxes(nms_boxes, confs.tolist(), conf_threshold, 0.45)
+
+        # Pass 1: Primary Localization
+        indices_p1 = cv2.dnn.NMSBoxes(nms_boxes, confs.tolist(), conf_threshold, 0.45)
+        indices_p1 = np.array(indices_p1).flatten() if len(indices_p1) > 0 else np.array([], dtype=np.int32)
+
+        # Pass 2: High-recall Touching / Doublet Recovery (conf=0.12, iou=0.50, overlap < 0.70 with Pass 1)
+        p2_valid = np.where(confs >= 0.12)[0]
+        if len(p2_valid) > 0:
+            nms_boxes_p2 = [nms_boxes[i] for i in p2_valid]
+            confs_p2 = confs[p2_valid].tolist()
+            indices_p2 = cv2.dnn.NMSBoxes(nms_boxes_p2, confs_p2, 0.12, 0.50)
+            indices_p2 = p2_valid[np.array(indices_p2).flatten()] if len(indices_p2) > 0 else np.array([], dtype=np.int32)
+
+            if len(indices_p1) > 0 and len(indices_p2) > 0:
+                p1_x1 = x1[indices_p1]; p1_y1 = y1[indices_p1]
+                p1_x2 = p1_x1 + bw[indices_p1]; p1_y2 = p1_y1 + bh[indices_p1]
+
+                p2_x1 = x1[indices_p2]; p2_y1 = y1[indices_p2]
+                p2_x2 = p2_x1 + bw[indices_p2]; p2_y2 = p2_y1 + bh[indices_p2]
+
+                area1 = (p1_x2 - p1_x1) * (p1_y2 - p1_y1)
+                area2 = (p2_x2 - p2_x1) * (p2_y2 - p2_y1)
+
+                xx1 = np.maximum(p2_x1[:, None], p1_x1[None, :])
+                yy1 = np.maximum(p2_y1[:, None], p1_y1[None, :])
+                xx2 = np.minimum(p2_x2[:, None], p1_x2[None, :])
+                yy2 = np.minimum(p2_y2[:, None], p1_y2[None, :])
+
+                inter = np.maximum(0.0, xx2 - xx1) * np.maximum(0.0, yy2 - yy1)
+                ious = inter / (area2[:, None] + area1[None, :] - inter + 1e-6)
+                max_iou = np.max(ious, axis=1)
+                rec_indices = indices_p2[max_iou < 0.70]
+            else:
+                rec_indices = indices_p2
+        else:
+            rec_indices = np.array([], dtype=np.int32)
+
+        indices = np.concatenate([indices_p1, rec_indices]).astype(np.int32)
 
         if len(indices) > 0:
-            indices = np.array(indices).flatten()
+            raw_nms_count = len(indices)
+            cap_reached = bool(max_det and raw_nms_count >= max_det)
+            truncated_count = max(0, raw_nms_count - max_det) if max_det else 0
             if max_det and len(indices) > max_det:
                 indices = indices[:max_det]
 
@@ -169,6 +212,10 @@ def _segment_yolo_onnx(
         "clusters_unresolved": 0,
         "grains_derived_from_clusters": 0,
         "fragments_count": 0,
+        "max_det_configured": max_det,
+        "detection_cap_reached": cap_reached,
+        "truncated_detections_count": truncated_count,
+        "raw_nms_candidate_count": raw_nms_count,
     }
 
     return instance_mask, clean_mask, grain_diagnostics, separation_stats
@@ -179,7 +226,7 @@ def segment_yolo(
     weights_path: str = "runs/rice_seg_yolo11s_1280/weights/best.pt",
     conf_threshold: float = 0.25,
     imgsz: int = 1280,
-    max_det: int = 2000,
+    max_det: int = 3000,
     device: Optional[str] = None
 ) -> Tuple[np.ndarray, np.ndarray, Dict[int, Dict[str, Any]], Dict[str, Any]]:
     # Perform instance segmentation using trained YOLO11s-seg model.
@@ -228,6 +275,10 @@ def segment_yolo(
     raw_instance_mask = np.zeros((img_h, img_w), dtype=np.int32)
     clean_mask = np.zeros((img_h, img_w), dtype=np.uint8)
     temp_diagnostics: Dict[int, Dict[str, Any]] = {}
+
+    raw_nms_count = len(res.boxes) if res.boxes is not None else 0
+    cap_reached = bool(max_det and raw_nms_count >= max_det)
+    truncated_count = max(0, raw_nms_count - max_det) if max_det else 0
 
     if res.masks is not None and len(res.masks.xy) > 0:
         masks_xy = res.masks.xy
@@ -288,14 +339,33 @@ def segment_yolo(
         "clusters_unresolved": 0,
         "grains_derived_from_clusters": 0,
         "fragments_count": 0,
+        "max_det_configured": max_det,
+        "detection_cap_reached": cap_reached,
+        "truncated_detections_count": truncated_count,
+        "raw_nms_candidate_count": raw_nms_count,
     }
 
     return instance_mask, clean_mask, grain_diagnostics, separation_stats
 
 
 # Segment image using Otsu's optimal global thresholding.
-def segment_otsu(gray_image: np.ndarray) -> Tuple[np.ndarray, float]:
+def segment_otsu(gray_image: np.ndarray, max_fg_ratio: Optional[float] = None) -> Tuple[np.ndarray, float]:
     thresh_val, binary = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    if max_fg_ratio is not None and np.mean(binary > 0) > max_fg_ratio:
+        hist, bin_edges = np.histogram(gray_image, bins=256, range=(0, 256))
+        non_zero_bins = np.where(bin_edges[:-1] > 0)[0]
+        if len(non_zero_bins) > 0:
+            bg_peak = bin_edges[non_zero_bins[np.argmax(hist[non_zero_bins])]]
+            upper_pixels = gray_image[gray_image > bg_peak]
+            if len(upper_pixels) > 0 and len(np.unique(upper_pixels)) > 1:
+                try:
+                    thresh_val = float(filters.threshold_otsu(upper_pixels))
+                except Exception:
+                    thresh_val = float(bg_peak + 50.0)
+            else:
+                thresh_val = float(bg_peak + 50.0)
+            thresh_val = max(thresh_val, float(bg_peak + 50.0))
+            _, binary = cv2.threshold(gray_image, thresh_val, 255, cv2.THRESH_BINARY)
     return binary, float(thresh_val)
 
 
